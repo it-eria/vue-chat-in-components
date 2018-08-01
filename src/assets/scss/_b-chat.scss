@@ -1,0 +1,56 @@
+.b-chat {
+  padding: $b-chat-pt $b-chat-pr $b-chat-pb $b-chat-pl;
+  background-color: $chat-bg;
+  box-shadow: 0 8px 10px -5px rgba(0,0,0,.1);
+  border-radius: $b-chat-br;
+  position: relative;
+  z-index: 1000;
+  margin-top: 15px;
+  &__aside {
+    width: $b-chat-w;
+    height: 100%;
+    max-height: $b-chat-max-h;
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 500;
+    border-right: 1px solid $document-bg;
+    background-color: $chat-bg;
+    border-top-left-radius: 6px;
+    .toggle-btn {
+      display: none;
+      width: 14px;
+      height: 20px;
+      background-image: url('../assets/img/toggle.svg');
+      background-repeat: no-repeat;
+      background-position: 50% 50%;
+      background-size: contain;
+      transform-origin: 50% 50%;
+      position: absolute;
+      left: 50%;
+      top: 45px;
+      transform: translate(-50%, -50%) rotate(90deg);
+    }
+  }
+  &--task {
+    .toggle-btn {
+      display: block;
+    }
+    &.closed {
+      .toggle-btn {
+        transform: translate(-50%, -50%) rotate(0);
+      }
+      .b-chat__send-form {
+        display: none;
+      }
+    }
+  }
+  &__title {
+    font-family: $medium;
+    color: $dark;
+    padding: 0 $b-chat-send-form-pr 0 $b-chat-send-form-pl;
+    &--general {
+      color: $blue;
+    }
+  }
+}
