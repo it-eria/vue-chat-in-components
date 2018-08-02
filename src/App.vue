@@ -8,7 +8,7 @@
 import ChatComponent from './components/ChatComponent';
 
 export default {
-  name: 'app',
+  name: 'chat-app',
   components: {
     ChatComponent
   }
