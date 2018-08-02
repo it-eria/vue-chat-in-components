@@ -1,0 +1,19 @@
+{
+  "chats": {
+    "id-chat-1": {
+      "name": "chat-1"
+    }
+  },
+  "users": {
+    "id-user-1": {
+      "name": "John",
+      "surname": "Doe",
+      "email": "jdoe@gmail.com"
+    },
+    "id-user-2": {
+      "name": "Foo",
+      "surname": "Bar",
+      "email": "fbar@gmail.com"
+    }
+  }
+}
