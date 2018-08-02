@@ -13,14 +13,15 @@ export default {
   components: {
     ChatComponent
   },
-  data() {
+  data () {
     return {
-      tasks: []
+      tasks: [],
+      currentChat: chatID
     }
   },
-  firestore() {
+  firestore () {
     return {
-      tasks: db.collection('tasks').orderBy('lastUpdate', 'desc')
+      tasks: db.collection('tasks').where('appendToChat', '==', 'KKoxX2cI7G14sPSkqIF4').orderBy('lastUpdate', 'desc')
     }
   }
 }

@@ -6,7 +6,7 @@
     <div class="b-chat__message__inf-line">
       <h4>{{ user.name }}</h4>
       <span>{{ getDate(date.seconds) }}</span>
-      <span>9:50 pm</span>
+      <span>{{ getTime(date.seconds) }}</span>
     </div>
     <div class="b-chat__message__message-line">
       <p>{{ msg }}</p>
@@ -36,27 +36,40 @@
 </template>
 
 <script>
-import { db } from '../main';
+import { db } from '../main'
 
 export default {
   props: {
     message: Object
   },
-  data() {
+  data () {
     return {
       user: '',
       date: this.message.createdAt,
       msg: this.message.msg
     }
   },
-  firestore() {
+  firestore () {
     return {
       user: db.collection('users').doc(this.message.appendToUser)
     }
   },
   methods: {
-    getDate(sec) {
-      return new Date(new Date() + sec);
+    getDate (sec) {
+      let temp_date = new Date(sec*1000);
+      let year = temp_date.getFullYear();
+      let temp_month = temp_date.getMonth();
+      let temp_day = temp_date.getDate();
+      let month = (+temp_month + 1 < 10) ? ('0' + (+temp_month + 1)) : (+temp_month + 1);
+      let day = (+temp_day < 10) ? ('0' + temp_day) : temp_day;
+      return year + '.' + month + '.' + day
+    },
+    getTime (sec) {
+      let temp_date = new Date(sec*1000);
+      let hour = temp_date.getHours();
+      let temp_min = temp_date.getMinutes();
+      let min = (+temp_min < 10) ? ('0' + temp_min) : temp_min;
+      return hour + ':' + min
     }
   }
 }
@@ -66,5 +79,3 @@ export default {
   @import '../assets/scss/variables';
   @import '../assets/scss/b-message';
 </style>
-
-

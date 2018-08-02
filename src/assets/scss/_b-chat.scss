@@ -6,6 +6,7 @@
   position: relative;
   z-index: 1000;
   margin-top: 15px;
+  transition: all .3s ease-in-out;
   &__aside {
     width: $b-chat-w;
     height: 100%;
@@ -43,8 +44,11 @@
       .b-chat__send-form {
         display: none;
       }
-      .b-chat__message:first-child {
-        display: block;
+      .b-chat__message {
+        display: none;
+        &:first-child {
+          display: block;
+        }
       }
     }
   }

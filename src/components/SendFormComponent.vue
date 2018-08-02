@@ -1,12 +1,10 @@
 <template>
   <!-- Send form -->
   <div class="b-chat__send-form">
-    <form action="#">
-      <textarea class="b-chat__send-form__textarea" placeholder="Type your message..." v-on:keyup="AutoGrowTextArea($event.target)"></textarea>
-      <button class="b-chat__send-form__emoji-btn"></button>
-      <button class="b-chat__send-form__upload-btn"></button>
-      <button class="b-chat__send-form__send-btn">Send</button>
-    </form>
+    <textarea class="b-chat__send-form__textarea" placeholder="Type your message..." v-model="message"  v-on:keyup="AutoGrowTextArea($event.target)"></textarea>
+    <button class="b-chat__send-form__emoji-btn"></button>
+    <button class="b-chat__send-form__upload-btn"></button>
+    <button class="b-chat__send-form__send-btn" v-on:click="addMessage (message, forTask, currentUser)">Send</button>
     <!-- <div class="uploaded-files-preview">
       <div class="b-file b-file--photo">
         <button class="close-btn"></button>
@@ -34,15 +32,30 @@
 </template>
 
 <script>
+import { db, currentUser } from '../main'
+
 export default {
+  props: {
+    forTask: String
+  },
+  data () {
+    return {
+      message: '',
+      currentUser: currentUser
+    }
+  },
   methods: {
-    AutoGrowTextArea(textField) {
+    AutoGrowTextArea (textField) {
       if (textField.clientHeight < textField.scrollHeight) {
-        textField.style.height = textField.scrollHeight + "px";
-        if (textField.clientHeight < textField.scrollHeight){
-          textField.style.height = (textField.scrollHeight * 2 - textField.clientHeight) + "px";
+        textField.style.height = textField.scrollHeight + 'px'
+        if (textField.clientHeight < textField.scrollHeight) {
+          textField.style.height = (textField.scrollHeight * 2 - textField.clientHeight) + 'px'
         }
       }
+    },
+    addMessage (msg, task, user) {
+      const createdAt = new Date();
+      db.collection('messages').add({ msg: msg, appendToTask: task, appendToUser: user, createdAt: createdAt });
     }
   }
 }
@@ -52,5 +65,3 @@ export default {
   @import '../assets/scss/variables';
   @import '../assets/scss/send-form';
 </style>
-
-

@@ -1,22 +1,24 @@
 <template>
   <!-- Chat -->
-    <div :class="[taskName ? 'b-chat b-chat--task closed' : 'b-chat']">
+    <div :class="[taskName ? 'b-chat b-chat--task' : 'b-chat', isClosed ? 'closed': '']">
       <div class="b-chat__aside">
-        <a href="#" v-if="taskName" class="toggle-btn"></a>
+        <a href="#" v-if="taskName" v-on:click="isClosed = !isClosed" class="toggle-btn"></a>
       </div>
       <div v-if="taskName" class="b-chat__title">
         <h2>{{ taskName }}</h2>
       </div>
-      <SendFormComponent></SendFormComponent>
-      <MessageComponent v-for="(message, idx) in messages" :key="idx" :message="message"></MessageComponent>
+      <SendFormComponent :forTask="taskId"></SendFormComponent>
+      <div>
+        <MessageComponent v-for="(message, idx) in messages" :key="idx" :message="message"></MessageComponent>
+      </div>
     </div>
     <!-- /Chat -->
 </template>
 
 <script>
-import SendFormComponent from './SendFormComponent';
-import MessageComponent from './MessageComponent';
-import { db } from '../main';
+import SendFormComponent from './SendFormComponent'
+import MessageComponent from './MessageComponent'
+import { db } from '../main'
 
 export default {
   components: {
@@ -27,14 +29,15 @@ export default {
     taskName: String,
     taskId: String
   },
-  data() {
+  data () {
     return {
-      messages: []
+      messages: [],
+      isClosed: true
     }
   },
-  firestore() {
+  firestore () {
     return {
-      messages: db.collection('messages').where('appendToTask', '==', this.taskId)
+      messages: db.collection('messages').where('appendToTask', '==', this.taskId).orderBy('createdAt', 'desc')
     }
   }
 }
@@ -44,5 +47,3 @@ export default {
   @import '../assets/scss/variables';
   @import '../assets/scss/b-chat';
 </style>
-
-
