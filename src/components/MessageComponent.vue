@@ -4,14 +4,14 @@
       <img src="../assets/img/avatar-1.jpg" alt="user avatar">
     </div>
     <div class="b-chat__message__inf-line">
-      <h4>Veronica Gromadska</h4>
-      <span>2018.07.13</span>
+      <h4>{{ user.name }}</h4>
+      <span>{{ getDate(date.seconds) }}</span>
       <span>9:50 pm</span>
     </div>
     <div class="b-chat__message__message-line">
-      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillu</p>
+      <p>{{ msg }}</p>
     </div>
-    <div class="b-chat__message__files-line">
+    <!-- <div class="b-chat__message__files-line">
       <div class="non-photos">
         <a href="#" class="file-link file-link--video">
           <img src="../assets/img/video.svg" alt="video">
@@ -31,13 +31,34 @@
           <img src="../assets/img/photo-1.jpg" alt="photo">
         </a>
       </div>
-    </div>
+    </div> -->
   </div>
 </template>
 
 <script>
+import { db } from '../main';
+
 export default {
-  
+  props: {
+    message: Object
+  },
+  data() {
+    return {
+      user: '',
+      date: this.message.createdAt,
+      msg: this.message.msg
+    }
+  },
+  firestore() {
+    return {
+      user: db.collection('users').doc(this.message.appendToUser)
+    }
+  },
+  methods: {
+    getDate(sec) {
+      return new Date(new Date() + sec);
+    }
+  }
 }
 </script>
 

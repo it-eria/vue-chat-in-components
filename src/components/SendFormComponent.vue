@@ -7,7 +7,7 @@
       <button class="b-chat__send-form__upload-btn"></button>
       <button class="b-chat__send-form__send-btn">Send</button>
     </form>
-    <div class="uploaded-files-preview">
+    <!-- <div class="uploaded-files-preview">
       <div class="b-file b-file--photo">
         <button class="close-btn"></button>
         <img src="../assets/img/upload-1.jpg" alt="photo">
@@ -28,7 +28,7 @@
         <img src="../assets/img/archive.svg" alt="archive">
         <span>archive-1.rar</span>
       </div>
-    </div>
+    </div> -->
   </div>
   <!-- /Send form -->
 </template>

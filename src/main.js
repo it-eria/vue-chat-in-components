@@ -2,10 +2,10 @@ import Vue from 'vue'
 import App from './App.vue'
 import firebase from 'firebase/app'
 import VueFire from 'vuefire'
-import 'firebase/database'
+import 'firebase/firestore'
 
 // Initialize Firebase
-let config = {
+const config = {
   apiKey: "AIzaSyAC6QK-sCeYF_X8HmM1oCCqhYwWeEFOakg",
   authDomain: "test-chat-c8873.firebaseapp.com",
   databaseURL: "https://test-chat-c8873.firebaseio.com",
@@ -13,11 +13,13 @@ let config = {
   storageBucket: "test-chat-c8873.appspot.com",
   messagingSenderId: "670720421431"
 };
-let firebaseApp = firebase.initializeApp(config);
+firebase.initializeApp(config);
+firebase.firestore().settings({timestampsInSnapshots: true});
 
 Vue.use(VueFire);
 
-export const db = firebaseApp.database();
+export const db = firebase.firestore();
+export const chatID = 'KKoxX2cI7G14sPSkqIF4';
 
 
 Vue.config.productionTip = false

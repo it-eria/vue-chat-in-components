@@ -1,20 +1,12 @@
 <template>
   <div id="chat-app">
-    <!-- <h1>{{ chatName }}</h1> -->
-    <ChatComponent></ChatComponent>
+    <ChatComponent v-for="(task, idx) in tasks" :key="idx" :taskName="task.name" :taskId="task.id"></ChatComponent>
   </div>
 </template>
 
 <script>
 import ChatComponent from './components/ChatComponent'
-import 'firebase/database'
-import { db } from './main'
-
-let chat = db.ref('chats').on('value', function(snapshot) {
-  return snapshot.val();
-});
-
-console.log(chat);
+import { db, chatID } from './main'
 
 export default {
   name: 'chat-app',
@@ -23,7 +15,12 @@ export default {
   },
   data() {
     return {
-      userID: 'id-user-1'
+      tasks: []
+    }
+  },
+  firestore() {
+    return {
+      tasks: db.collection('tasks').orderBy('lastUpdate', 'desc')
     }
   }
 }
