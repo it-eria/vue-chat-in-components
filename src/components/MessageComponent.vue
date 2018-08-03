@@ -77,5 +77,6 @@ export default {
 
 <style lang="scss">
   @import '../assets/scss/variables';
+  @import '../assets/scss/send-form';
   @import '../assets/scss/b-message';
 </style>

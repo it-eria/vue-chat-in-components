@@ -1,28 +1,27 @@
 <template>
   <div id="chat-app">
-    <ChatComponent v-for="(task, idx) in tasks" :key="idx" :taskName="task.name" :taskId="task.id"></ChatComponent>
+    <h1>Chat is - {{ chat.name }}</h1>
+    <!-- <ChatComponent v-for="(task, idx) in tasks" :key="idx" :taskName="task.name" :taskId="task.id"></ChatComponent> -->
   </div>
 </template>
 
 <script>
-import ChatComponent from './components/ChatComponent'
-import { db, chatID } from './main'
+import TaskComponent from './components/TaskComponent'
+import { db } from './main'
 
 export default {
   name: 'chat-app',
   components: {
-    ChatComponent
+    TaskComponent
   },
   data () {
     return {
       tasks: [],
-      currentChat: chatID
+      chat: ''
     }
   },
-  firestore () {
-    return {
-      tasks: db.collection('tasks').where('appendToChat', '==', 'KKoxX2cI7G14sPSkqIF4').orderBy('lastUpdate', 'desc')
-    }
+  firebase: function () {
+    chat: db.ref('https://test-chat-c8873.firebaseio.com/chats')
   }
 }
 </script>
