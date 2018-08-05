@@ -1,13 +1,13 @@
 <template>
   <div id="chat-app">
-    <h1>Chat is - {{ chat.name }}</h1>
-    <!-- <ChatComponent v-for="(task, idx) in tasks" :key="idx" :taskName="task.name" :taskId="task.id"></ChatComponent> -->
+    <TaskComponent v-for="task in tasks" :key="task.id" :task="task" :user="user"></TaskComponent>
   </div>
 </template>
 
 <script>
 import TaskComponent from './components/TaskComponent'
-import { db } from './main'
+import { db, st } from './firebase'
+import { currentChatRoom, currentUser } from './main'
 
 export default {
   name: 'chat-app',
@@ -17,11 +17,24 @@ export default {
   data () {
     return {
       tasks: [],
-      chat: ''
+      chat: currentChatRoom,
+      user: currentUser
     }
   },
-  firebase: function () {
-    chat: db.ref('https://test-chat-c8873.firebaseio.com/chats')
+  created () {
+    let _this = this;
+    db.ref(this.chat).child('tasks').orderByChild('lastUpdate').on('value', function(snapshot) {
+      _this.tasks = [];
+      snapshot.forEach(function(child) {
+        _this.tasks.unshift(
+          {
+            id: child.key, 
+            lastUpdate: child.val().lastUpdate,
+            name: child.val().name,
+            messages: child.val().messages
+          });
+      });
+    });
   }
 }
 </script>

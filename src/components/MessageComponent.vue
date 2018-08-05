@@ -5,11 +5,11 @@
     </div>
     <div class="b-chat__message__inf-line">
       <h4>{{ user.name }}</h4>
-      <span>{{ getDate(date.seconds) }}</span>
-      <span>{{ getTime(date.seconds) }}</span>
+      <span>{{ getDate(message.createdAt) }}</span>
+      <span>{{ getTime(message.createdAt) }}</span>
     </div>
     <div class="b-chat__message__message-line">
-      <p>{{ msg }}</p>
+      <p>{{ message.message }}</p>
     </div>
     <!-- <div class="b-chat__message__files-line">
       <div class="non-photos">
@@ -36,27 +36,27 @@
 </template>
 
 <script>
-import { db } from '../main'
+import { db, st } from '../firebase'
 
 export default {
   props: {
-    message: Object
+    message: Object,
+    userAvatar: String
   },
   data () {
     return {
-      user: '',
-      date: this.message.createdAt,
-      msg: this.message.msg
+      user: {},
+      avatarUlr: ''
     }
   },
-  firestore () {
-    return {
-      user: db.collection('users').doc(this.message.appendToUser)
-    }
+  created () {
+    db.ref('users').child(this.message.from).once('value', snapshot => this.user = snapshot.val());
+    st.ref().child('avatars/'+this.userAvatar).getDownloadURL().then(url => this.avatarUrl = url);
+    console.log(this.avatarUrl);
   },
   methods: {
     getDate (sec) {
-      let temp_date = new Date(sec*1000);
+      let temp_date = new Date(sec);
       let year = temp_date.getFullYear();
       let temp_month = temp_date.getMonth();
       let temp_day = temp_date.getDate();
@@ -65,7 +65,7 @@ export default {
       return year + '.' + month + '.' + day
     },
     getTime (sec) {
-      let temp_date = new Date(sec*1000);
+      let temp_date = new Date(sec);
       let hour = temp_date.getHours();
       let temp_min = temp_date.getMinutes();
       let min = (+temp_min < 10) ? ('0' + temp_min) : temp_min;
@@ -79,4 +79,5 @@ export default {
   @import '../assets/scss/variables';
   @import '../assets/scss/send-form';
   @import '../assets/scss/b-message';
+  @import '../assets/scss/adaptive';
 </style>

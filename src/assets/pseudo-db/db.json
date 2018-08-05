@@ -1,44 +1,7 @@
 {
-  "chats": {
-    "id-chat-1": {
-      "name": "chat-1"
-    }
-  },
-  "users": {
-    "id-user-1": {
-      "name": "John Doe"
-    },
-    "id-user-2": {
-      "name": "Tom Smith"
-    }
-  },
-  "tasks": {
-    "id-task-1": {
-      "name": null,
-      "forChat": "id-chat-1",
-      "lastUpdate": ""
-    },
-    "id-task-2": {
-      "name": "Task 1",
-      "forChat": "id-chat-1",
-      "lastUpdate": ""
-    },
-    "id-task-3": {
-      "name": "Task 2",
-      "forChat": "id-chat-1",
-      "lastUpdate": ""
-    }
-  },
-  "messages": {
-    "id-message-1": {
-      "msg": "First message",
-      "forTask": "id-task-1",
-      "fromUser": "id-user-1"
-    },
-    "id-message-2": {
-      "msg": "First message",
-      "forTask": "id-task-2",
-      "fromUser": "id-user-2"
+  "chat-room-1": {
+    "tasks": {
+      
     }
   }
 }
