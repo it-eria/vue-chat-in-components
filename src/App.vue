@@ -1,6 +1,8 @@
 <template>
   <div id="chat-app">
-    <TaskComponent v-for="task in tasks" :key="task.id" :task="task" :user="user"></TaskComponent>
+    <transition-group name="flip-list" tag="div">
+      <TaskComponent v-for="task in tasks" :key="task.id" :task="task" :user="user"></TaskComponent>
+    </transition-group>
   </div>
 </template>
 

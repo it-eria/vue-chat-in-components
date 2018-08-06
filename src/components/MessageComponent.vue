@@ -1,7 +1,8 @@
 <template>
   <div class="b-chat__message">
     <div class="b-chat__message__user-avatar">
-      <img src="../assets/img/avatar-1.jpg" alt="user avatar">
+      <!-- <img :src="avatarUrl ? avatarUrl : avatarDefault" alt="user avatar"> -->
+      <img v-bind:src="avatarUrl ? avatarUrl : require('../assets/img/default-avatar.png')" alt="user avatar">
     </div>
     <div class="b-chat__message__inf-line">
       <h4>{{ user.name }}</h4>
@@ -40,19 +41,20 @@ import { db, st } from '../firebase'
 
 export default {
   props: {
-    message: Object,
-    userAvatar: String
+    message: Object
   },
   data () {
     return {
       user: {},
-      avatarUlr: ''
+      avatarUrl: ''
     }
   },
   created () {
-    db.ref('users').child(this.message.from).once('value', snapshot => this.user = snapshot.val());
-    st.ref().child('avatars/'+this.userAvatar).getDownloadURL().then(url => this.avatarUrl = url);
-    console.log(this.avatarUrl);
+    let _this = this
+    db.ref('users').child(this.message.from).once('value', function(snapshot) {
+      _this.user = snapshot.val();
+      st.ref('avatars').child(_this.user.avatar).getDownloadURL().then(url => _this.avatarUrl = url);
+    }); 
   },
   methods: {
     getDate (sec) {

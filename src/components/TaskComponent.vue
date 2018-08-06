@@ -60,7 +60,9 @@
     </div>
     <!-- /Send form -->
     <div>
-      <MessageComponent v-for="message in messages" :key="message.id" :message="message" :userAvatar="userAvatar"></MessageComponent>
+      <transition-group name="list" tag="div">
+        <MessageComponent v-for="message in messages" :key="message.id" :message="message"></MessageComponent>
+      </transition-group>
     </div>
   </div>
   <!-- /Chat -->
@@ -87,8 +89,7 @@ export default {
       isClosed: true,
       messages: [],
       search: '',
-      message: '',
-      userAvatar: ''
+      message: ''
     }
   },
   created () {
@@ -105,7 +106,6 @@ export default {
           });
       });
     });
-    db.ref('users/'+this.user).child('avatar').once('value', snapshot => this.userAvatar = snapshot.val());
   },
   methods: {
     AutoGrowTextArea (textField) {
@@ -125,6 +125,7 @@ export default {
           from: this.user
         });
       db.ref(currentChatRoom+'/tasks').child(this.task.id).update({lastUpdate: createdAt});
+      this.message='';
     },
     insert(emoji) {
       this.message += emoji
