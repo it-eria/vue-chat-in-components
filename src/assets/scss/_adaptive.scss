@@ -18,7 +18,7 @@
     &__send-form {
       position: relative;
       z-index: 300;
-      form {
+      .form {
         justify-content: flex-end;
       }
       &__textarea {
@@ -42,6 +42,11 @@
         top: 0;
         transform: none;
         margin-right: 10px;
+      }
+      &__message-line {
+        p {
+          font-size: 14px;
+        }
       }
       &__inf-line {
         display: inline-block;

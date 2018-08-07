@@ -1,7 +1,6 @@
 <template>
   <div class="b-chat__message">
     <div class="b-chat__message__user-avatar">
-      <!-- <img :src="avatarUrl ? avatarUrl : avatarDefault" alt="user avatar"> -->
       <img v-bind:src="avatarUrl ? avatarUrl : require('../assets/img/default-avatar.png')" alt="user avatar">
     </div>
     <div class="b-chat__message__inf-line">
@@ -79,7 +78,6 @@ export default {
 
 <style lang="scss">
   @import '../assets/scss/variables';
-  @import '../assets/scss/send-form';
   @import '../assets/scss/b-message';
   @import '../assets/scss/adaptive';
 </style>
