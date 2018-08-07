@@ -41,36 +41,36 @@
       </div>
       <div class="uploaded-files-preview">
         <!-- Image miniatures -->
-        <div v-for="(image, idx) in uploadedImages" :key="'img-'+idx" class="b-file b-file--photo">
+        <div v-for="(image, idx) in images" :key="'img-'+idx" class="b-file b-file--photo">
           <div class="img-miniature">
-            <button class="close-btn" @click.prevent="uploadedImages.splice(idx, 1);"></button>
-            <img :src="image.tmpPath" alt="photo">
+            <button class="close-btn" @click.prevent="images.splice(idx, 1)"></button>
+            <img :src="image.blob" alt="photo">
           </div>
           <span>{{viewName(image.name)}}</span>
         </div>        
         <!-- /Image miniatures -->
         <!-- Video miniatures -->
-        <div v-for="(video, idx) in uploadedVideos" :key="'vid-'+idx" class="b-file b-file--video list-complete-item">
+        <div v-for="(video, idx) in videos" :key="'vid-'+idx" class="b-file b-file--video list-complete-item">
           <div class="img-miniature">
-            <button class="close-btn" @click.prevent="uploadedVideos.splice(idx, 1);"></button>
+            <button class="close-btn" @click.prevent="videos.splice(idx, 1)"></button>
             <img src="../assets/img/video.svg" alt="video">
           </div>
           <span>{{viewName(video.name)}}</span>
         </div>
         <!-- /Video miniatures -->
         <!-- Document miniatures -->
-        <div v-for="(doc, idx) in uploadedDocuments" :key="'doc-'+idx" class="b-file b-file--document list-complete-item">
+        <div v-for="(doc, idx) in documents" :key="'doc-'+idx" class="b-file b-file--document list-complete-item">
           <div class="img-miniature">
-            <button class="close-btn" @click.prevent="uploadedDocuments.splice(idx, 1);"></button>
+            <button class="close-btn" @click.prevent="documents.splice(idx, 1)"></button>
             <img src="../assets/img/document.svg" alt="document">
           </div>
           <span>{{viewName(doc.name)}}</span>
         </div>
         <!-- /Document miniatures -->
         <!-- Archives miniatures -->
-        <div v-for="(archive, idx) in uploadedArchives" :key="'arch-'+idx" class="b-file b-file--archive list-complete-item">
+        <div v-for="(archive, idx) in archives" :key="'arch-'+idx" class="b-file b-file--archive list-complete-item">
           <div class="img-miniature">
-            <button class="close-btn" @click.prevent="uploadedArchives.splice(idx, 1);"></button>
+            <button class="close-btn" @click.prevent="archives.splice(idx, 1)"></button>
             <img src="../assets/img/archive.svg" alt="archive">
           </div>
           <span>{{viewName(archive.name)}}</span>
@@ -111,10 +111,10 @@ export default {
       messages: [],
       search: '',
       message: '',
-      uploadedImages: [],
-      uploadedVideos: [],
-      uploadedDocuments: [],
-      uploadedArchives: [],
+      images: [],
+      videos: [],
+      archives: [],
+      documents: []
     }
   },
   created () {
@@ -142,19 +142,40 @@ export default {
       }
     },
     addMessage(msg) {
-      if(!!msg || (uploadedImages.length > 0) || (uploadedVideos.length > 0) 
-               || (uploadedArchives.length > 0) || (uploadedDocuments.length > 0)) {
-        let createdAt = firebase.database.ServerValue.TIMESTAMP; 
+      if(!!msg) {
+        let createdAt = firebase.database.ServerValue.TIMESTAMP;
+        let files = null;
+        // Upload images
+        for(let i=0; i<this.images.length; i++) {
+          let fileName = new Date().getTime() + '-' + this.images[i].name;
+          let uploadTask = st.ref('uploads').put(this.images[i].blob);
+          uploadTask.on('state_changed', function(snapshot) {
+            let progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            console.log('Upload is ' + progress + '% done');
+            switch (snapshot.state) {
+              case firebase.storage.TaskState.PAUSED: // or 'paused'
+                console.log('Upload is paused');
+                break;
+              case firebase.storage.TaskState.RUNNING: // or 'running'
+                console.log('Upload is running');
+                break;
+            }
+          }, function(error) {
+
+          }, function() {
+            uploadTask.snapshot.ref.getDownloadURL().then(function(downloadURL) {
+              console.log('File available at', downloadURL);
+            });
+          });
+        }
         db.ref(currentChatRoom+'/tasks').child(this.task.id).child('messages').push(
           {
             msg: msg, 
             createdAt: createdAt, 
-            from: this.user
+            from: this.user,
+            files: files
           });
-        db.ref(currentChatRoom+'/tasks').child(this.task.id).update({lastUpdate: createdAt});        
-        for(let i=0;i<this.uploadedImages;i++) {
-          st.ref('upload').child(this.uploadedImages[i].name).put(this.uploadedImages[i].tmpPath);
-        }
+        db.ref(currentChatRoom+'/tasks').child(this.task.id).update({lastUpdate: createdAt});
         this.message='';
       }
     },
@@ -162,22 +183,20 @@ export default {
       this.message += emoji
     },
     filesChange(e) {
-      let filesLength = e.target.files.length;
-      for(let i = 0; i < filesLength; i++) {
+      for(let i = 0; i < e.target.files.length; i++) {
         let fileInf = {
           name: e.target.files[i].name,
-          size: e.target.files[i].size,
           type: mimetype.lookup(e.target.files[i].name),
-          tmpPath: URL.createObjectURL(e.target.files[i])
+          blob: URL.createObjectURL(e.target.files[i])
         }
         if(/image/.test(fileInf.type)) {
-          this.uploadedImages.push(fileInf);
+          this.images.push(fileInf);
         } else if (/x-rar-compressed/.test(fileInf.type) || /zip/.test(fileInf.type)) {
-          this.uploadedArchives.push(fileInf);
+          this.archives.push(fileInf);
         } else if(/officedocument/.test(fileInf.type) || /msword/.test(fileInf.type) || /text/.test(fileInf.type) || /pdf/.test(fileInf.type)) {
-          this.uploadedDocuments.push(fileInf);
+          this.documents.push(fileInf);
         } else if(/video/.test(fileInf.type)) {
-          this.uploadedVideos.push(fileInf);
+          this.videos.push(fileInf);
         }
       }
       e.target.value = '';
