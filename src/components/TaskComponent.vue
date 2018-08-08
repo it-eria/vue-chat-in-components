@@ -41,37 +41,49 @@
       </div>
       <div class="uploaded-files-preview">
         <!-- Image miniatures -->
-        <div v-for="(image, idx) in images" :key="'img-'+idx" class="b-file b-file--photo">
+        <div v-for="(image, idx) in images" :key="'img-'+image.id" class="b-file b-file--photo">
           <div class="img-miniature">
             <button class="close-btn" @click.prevent="images.splice(idx, 1)"></button>
-            <img :src="image.blob" alt="photo">
+            <img :src="image.preview" alt="photo">
+            <div class="b-uploading" :id="'img-'+image.id">
+              Loading...
+            </div>
           </div>
           <span>{{viewName(image.name)}}</span>
         </div>        
         <!-- /Image miniatures -->
         <!-- Video miniatures -->
-        <div v-for="(video, idx) in videos" :key="'vid-'+idx" class="b-file b-file--video list-complete-item">
+        <div v-for="(video, idx) in videos" :key="'vid-'+video.id" class="b-file b-file--video list-complete-item">
           <div class="img-miniature">
             <button class="close-btn" @click.prevent="videos.splice(idx, 1)"></button>
             <img src="../assets/img/video.svg" alt="video">
+            <div class="b-uploading" :id="'vid-'+video.id">
+              Loading...
+            </div>
           </div>
           <span>{{viewName(video.name)}}</span>
         </div>
         <!-- /Video miniatures -->
         <!-- Document miniatures -->
-        <div v-for="(doc, idx) in documents" :key="'doc-'+idx" class="b-file b-file--document list-complete-item">
+        <div v-for="(doc, idx) in documents" :key="'doc-'+doc.id" class="b-file b-file--document list-complete-item">
           <div class="img-miniature">
             <button class="close-btn" @click.prevent="documents.splice(idx, 1)"></button>
             <img src="../assets/img/document.svg" alt="document">
+            <div class="b-uploading" :id="'doc-'+doc.id">
+              Loading...
+            </div>
           </div>
           <span>{{viewName(doc.name)}}</span>
         </div>
         <!-- /Document miniatures -->
         <!-- Archives miniatures -->
-        <div v-for="(archive, idx) in archives" :key="'arch-'+idx" class="b-file b-file--archive list-complete-item">
+        <div v-for="(archive, idx) in archives" :key="'arch-'+archive.id" class="b-file b-file--archive list-complete-item">
           <div class="img-miniature">
             <button class="close-btn" @click.prevent="archives.splice(idx, 1)"></button>
             <img src="../assets/img/archive.svg" alt="archive">
+            <div class="b-uploading" :id="'arch-'+archive.id">
+              Loading...
+            </div>
           </div>
           <span>{{viewName(archive.name)}}</span>
         </div>
@@ -81,7 +93,7 @@
     <!-- /Send form -->
     <div>
       <transition-group name="list" tag="div">
-        <MessageComponent v-for="message in messages" :key="message.id" :message="message"></MessageComponent>
+        <MessageComponent v-for="messageItem in messages" :key="messageItem.id" :message="messageItem"></MessageComponent>
       </transition-group>
     </div>
   </div>
@@ -114,7 +126,7 @@ export default {
       images: [],
       videos: [],
       archives: [],
-      documents: []
+      documents: [],
     }
   },
   created () {
@@ -127,7 +139,8 @@ export default {
             id: child.key, 
             createdAt: child.val().createdAt,
             from: child.val().from,
-            message: child.val().msg
+            message: child.val().msg,
+            files: child.val().files
           });
       });
     });
@@ -142,39 +155,58 @@ export default {
       }
     },
     addMessage(msg) {
-      if(!!msg) {
+      let isFiles = false;
+      let _this = this;
+      let files = {
+        images: [],
+        videos: [],
+        documents: [],
+        archives: []
+      }
+      let newMessage = db.ref(currentChatRoom+'/tasks').child(this.task.id).child('messages').push();
+      console.log(newMessage.key);
+      if(!!this.images.length || !!this.archives.length || !!this.videos.length || !!this.documents.length) isFiles = true;
+      if(!!msg || isFiles) {
         let createdAt = firebase.database.ServerValue.TIMESTAMP;
-        let files = null;
         // Upload images
         for(let i=0; i<this.images.length; i++) {
-          let fileName = new Date().getTime() + '-' + this.images[i].name;
-          let uploadTask = st.ref('uploads').put(this.images[i].blob);
+          let el = document.getElementById('img-'+this.images[i].id);
+          let uploadTask = st.ref('upload').child(this.images[i].newName).put(this.images[i].file);
           uploadTask.on('state_changed', function(snapshot) {
-            let progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            console.log('Upload is ' + progress + '% done');
+            el.style.opacity = 1;
             switch (snapshot.state) {
               case firebase.storage.TaskState.PAUSED: // or 'paused'
-                console.log('Upload is paused');
+                el.innerText = 'Paused';
                 break;
               case firebase.storage.TaskState.RUNNING: // or 'running'
-                console.log('Upload is running');
+                el.innerText = 'Loading...';
                 break;
             }
           }, function(error) {
-
+            el.classList.add('b-uploading--err');
+            el.innerText = "Error";
           }, function() {
             uploadTask.snapshot.ref.getDownloadURL().then(function(downloadURL) {
-              console.log('File available at', downloadURL);
+              _this.images[i].downloadUrl = downloadURL;
+              el.classList.add('b-uploading--success');
+              el.innerText = "Success";
+              files.images.push(_this.images[i]);
+              newMessage.update({
+                files: files
+              });
+              _this.images.splice(i, 1);
+              setTimeout(function() {
+                if(_this.images.length == 1) _this.images = []
+              }, 1000);
             });
           });
         }
-        db.ref(currentChatRoom+'/tasks').child(this.task.id).child('messages').push(
-          {
-            msg: msg, 
-            createdAt: createdAt, 
-            from: this.user,
-            files: files
-          });
+        newMessage.update({
+          msg: msg, 
+          createdAt: createdAt, 
+          from: this.user,
+          files: files  
+        });
         db.ref(currentChatRoom+'/tasks').child(this.task.id).update({lastUpdate: createdAt});
         this.message='';
       }
@@ -184,11 +216,15 @@ export default {
     },
     filesChange(e) {
       for(let i = 0; i < e.target.files.length; i++) {
+        let file = e.target.files[i];
         let fileInf = {
-          name: e.target.files[i].name,
-          type: mimetype.lookup(e.target.files[i].name),
-          blob: URL.createObjectURL(e.target.files[i])
-        }
+              id: i,
+              name: file.name,
+              type: mimetype.lookup(file.name),
+              preview: window.URL.createObjectURL(file),
+              newName: Math.floor(Math.random() * 999999999) + '-' + file.name,
+              file: file
+            }
         if(/image/.test(fileInf.type)) {
           this.images.push(fileInf);
         } else if (/x-rar-compressed/.test(fileInf.type) || /zip/.test(fileInf.type)) {

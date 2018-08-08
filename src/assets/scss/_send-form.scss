@@ -82,6 +82,26 @@
         text-align: center;
         white-space: nowrap;
       }
+      .b-uploading {
+        display: inline-block;
+        border-radius: 50%;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        opacity: 0;
+        transition: all .3s ease-in-out;
+        font-family: $bold;
+        font-size: 16px;
+        color: #fff;
+        text-shadow: 0 0 5px #000;
+        &--success {
+          color: $success;
+        }
+        &--err {
+          color: $error;
+        }
+      }
     }
   }
   &__textarea {

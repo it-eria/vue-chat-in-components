@@ -11,8 +11,8 @@
     <div class="b-chat__message__message-line">
       <p>{{ message.message }}</p>
     </div>
-    <!-- <div class="b-chat__message__files-line">
-      <div class="non-photos">
+    <div class="b-chat__message__files-line">
+      <!-- <div class="non-photos">
         <a href="#" class="file-link file-link--video">
           <img src="../assets/img/video.svg" alt="video">
           <span>...wewqvideo-1.avi</span>
@@ -25,13 +25,13 @@
           <img src="../assets/img/archive.svg" alt="archive">
           <span>archive-1.rar</span>
         </a>
-      </div>
-      <div class="photos">
-        <a href="img/photo-1.jpg" target="_blank">
-          <img src="../assets/img/photo-1.jpg" alt="photo">
+      </div> -->
+      <!-- <div v-for="(image, idx) in message.files.images" class="photos" :key="idx" >
+        <a href="https://firebasestorage.googleapis.com/v0/b/test-chat-c8873.appspot.com/o/upload%2F10580364-heart-1776746_960_720.jpg?alt=media&token=235e5a7a-2eb0-4f51-a64e-b6ea6e5db120" target="_blank">
+          <img src="https://firebasestorage.googleapis.com/v0/b/test-chat-c8873.appspot.com/o/upload%2F10580364-heart-1776746_960_720.jpg?alt=media&token=235e5a7a-2eb0-4f51-a64e-b6ea6e5db120" alt="photo" >
         </a>
-      </div>
-    </div> -->
+      </div> -->
+    </div>
   </div>
 </template>
 
@@ -49,11 +49,12 @@ export default {
     }
   },
   created () {
-    let _this = this
+    let _this = this;
+    console.log(this.message.files.images);
     db.ref('users').child(this.message.from).once('value', function(snapshot) {
       _this.user = snapshot.val();
       st.ref('avatars').child(_this.user.avatar).getDownloadURL().then(url => _this.avatarUrl = url);
-    }); 
+    });
   },
   methods: {
     getDate (sec) {
