@@ -86,7 +86,7 @@
   box-shadow: 0 1px 6px rgba(0,0,0,.2);
   transition: all .3s ease-in-out;
   position: relative;
-  margin-bottom: 20px;
+  margin-bottom: 2.5rem;
   text-decoration: none;
   &:last-child {
     margin-right: 0;
@@ -130,11 +130,16 @@
   display: flex;
   justify-content: space-between;
   flex-flow: row wrap;
+  font-size: 0;
+  margin-top: -0.5rem;
   a {
+    width: 33%;
     display: inline-block;
+    margin: 0;
   }
   img {
     max-width: 100%;
     height: auto;
+    margin: 0;
   }
 }

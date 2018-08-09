@@ -11,26 +11,26 @@
     <div class="b-chat__message__message-line">
       <p>{{ message.message }}</p>
     </div>
-    <div class="b-chat__message__files-line">
-      <!-- <div class="non-photos">
-        <a href="#" class="file-link file-link--video">
+    <div v-if="message.files" class="b-chat__message__files-line">
+      <div class="non-photos">
+        <a :href="video.downloadUrl"  v-for="(video, idx) in message.files.videos" :key="'vid-'+idx" class="file-link file-link--video" target="_blank">
           <img src="../assets/img/video.svg" alt="video">
-          <span>...wewqvideo-1.avi</span>
+          <span>{{viewName(video.name)}}</span>
         </a>
-        <a href="#" class="file-link file-link--document">
+        <a :href="document.downloadUrl" v-for="(document, idx) in message.files.documents" :key="'doc-'+idx" class="file-link file-link--document" target="_blank">
           <img src="../assets/img/document.svg" alt="document">
-          <span>file-1.doc</span>
+          <span>{{viewName(document.name)}}</span>
         </a>
-        <a href="#" class="file-link file-link--archive">
+        <a :href="archive.downloadUrl" v-for="(archive, idx) in message.files.archives" :key="'arch-'+idx" class="file-link file-link--archive">
           <img src="../assets/img/archive.svg" alt="archive">
-          <span>archive-1.rar</span>
+          <span>{{viewName(archive.name)}}</span>
         </a>
-      </div> -->
-      <!-- <div v-for="(image, idx) in message.files.images" class="photos" :key="idx" >
-        <a href="https://firebasestorage.googleapis.com/v0/b/test-chat-c8873.appspot.com/o/upload%2F10580364-heart-1776746_960_720.jpg?alt=media&token=235e5a7a-2eb0-4f51-a64e-b6ea6e5db120" target="_blank">
-          <img src="https://firebasestorage.googleapis.com/v0/b/test-chat-c8873.appspot.com/o/upload%2F10580364-heart-1776746_960_720.jpg?alt=media&token=235e5a7a-2eb0-4f51-a64e-b6ea6e5db120" alt="photo" >
+      </div>
+      <div class="photos">
+        <a :href="image.downloadUrl" v-for="(image, idx) in message.files.images" :key="'img-'+idx" target="_blank">
+          <img :src="image.downloadUrl" alt="photo" >
         </a>
-      </div> -->
+      </div>
     </div>
   </div>
 </template>
@@ -50,7 +50,6 @@ export default {
   },
   created () {
     let _this = this;
-    console.log(this.message.files.images);
     db.ref('users').child(this.message.from).once('value', function(snapshot) {
       _this.user = snapshot.val();
       st.ref('avatars').child(_this.user.avatar).getDownloadURL().then(url => _this.avatarUrl = url);
@@ -72,6 +71,15 @@ export default {
       let temp_min = temp_date.getMinutes();
       let min = (+temp_min < 10) ? ('0' + temp_min) : temp_min;
       return hour + ':' + min
+    },
+    viewName(str) {
+      let name = str;
+      if(str.length > 16) {
+        let begin = str.substr(0, 7);
+        let end = str.substr(str.length-7, str.length-1);
+        name = begin + ' ... ' + end;
+      }
+      return name;
     }
   }
 }

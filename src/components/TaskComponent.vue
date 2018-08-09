@@ -127,12 +127,22 @@ export default {
       videos: [],
       archives: [],
       documents: [],
+      files: {
+        images: [],
+        videos: [],
+        archives: [],
+        documents: []
+      }
     }
   },
   created () {
     let _this = this;
     db.ref(currentChatRoom+'/tasks').child(this.task.id).child('messages').orderByChild('createdAt').on('value', function(snapshot) {
       _this.messages = [];
+      _this.images = [];
+      _this.archives = [];
+      _this.documents = [];
+      _this.videos = [];
       snapshot.forEach(function(child) {
         _this.messages.unshift(
           {
@@ -155,76 +165,106 @@ export default {
       }
     },
     addMessage(msg) {
-      let isFiles = false;
       let _this = this;
       let files = {
-        images: [],
-        videos: [],
-        documents: [],
-        archives: []
-      }
+        images: this.images,
+        videos: this.videos,
+        archives: this.archives,
+        documents: this.documents
+      };
       let newMessage = db.ref(currentChatRoom+'/tasks').child(this.task.id).child('messages').push();
-      console.log(newMessage.key);
-      if(!!this.images.length || !!this.archives.length || !!this.videos.length || !!this.documents.length) isFiles = true;
-      if(!!msg || isFiles) {
-        let createdAt = firebase.database.ServerValue.TIMESTAMP;
-        // Upload images
-        for(let i=0; i<this.images.length; i++) {
-          let el = document.getElementById('img-'+this.images[i].id);
-          let uploadTask = st.ref('upload').child(this.images[i].newName).put(this.images[i].file);
-          uploadTask.on('state_changed', function(snapshot) {
-            el.style.opacity = 1;
-            switch (snapshot.state) {
-              case firebase.storage.TaskState.PAUSED: // or 'paused'
-                el.innerText = 'Paused';
-                break;
-              case firebase.storage.TaskState.RUNNING: // or 'running'
-                el.innerText = 'Loading...';
-                break;
-            }
-          }, function(error) {
-            el.classList.add('b-uploading--err');
-            el.innerText = "Error";
-          }, function() {
-            uploadTask.snapshot.ref.getDownloadURL().then(function(downloadURL) {
-              _this.images[i].downloadUrl = downloadURL;
-              el.classList.add('b-uploading--success');
-              el.innerText = "Success";
-              files.images.push(_this.images[i]);
-              newMessage.update({
-                files: files
+      let createdAt = firebase.database.ServerValue.TIMESTAMP;
+      if(!!this.images.length || !!this.archives.length || !!this.videos.length || !!this.documents.length) {
+        return new Promise ((resolve, reject) => {
+          for(let key in files) {
+            for(let i=0; i<files[key].length; i++) {
+              let idPrefix;
+              let obj;
+              switch (key) {
+                case 'images':
+                  idPrefix = 'img-';
+                  obj = _this.images;
+                  break;
+                case 'videos':
+                  idPrefix = 'vid-';
+                  obj = _this.videos;
+                  break;
+                case 'archives':
+                  idPrefix = 'arch-';
+                  obj = _this.archives;
+                  break;
+                case 'documents':
+                  idPrefix = 'doc-';
+                  obj = _this.documents;
+                  break;
+              }
+              let el = document.getElementById(idPrefix + files[key][i].id);
+              let uploadTask = st.ref('upload').child(files[key][i].newName).put(files[key][i].file);
+              uploadTask.on('state_changed', function(snapshot) {
+                el.style.opacity = 1;
+                switch (snapshot.state) {
+                  case firebase.storage.TaskState.PAUSED: // or 'paused'
+                    el.innerText = 'Paused';
+                    break;
+                  case firebase.storage.TaskState.RUNNING: // or 'running'
+                    el.innerText = 'Loading...';
+                    break;
+                }
+              }, function(error) {
+                el.classList.add('b-uploading--err');
+                el.innerText = "Error";
+              }, function() {
+                uploadTask.snapshot.ref.getDownloadURL().then(downloadURL => {
+                  files[key][i].downloadUrl = downloadURL;
+                  el.classList.add('b-uploading--success');
+                  el.innerText = "Success";
+                  return new Promise ((resolve, reject) => {
+                    setTimeout(function() {
+                      el.parentNode.parentNode.remove();
+                      resolve(files);
+                    }, 1000);
+                  });
+                }).then(files => {
+                  newMessage.update({
+                    msg: msg, 
+                    createdAt: createdAt, 
+                    from: _this.user,
+                    files: files
+                  });
+                });
               });
-              _this.images.splice(i, 1);
-              setTimeout(function() {
-                if(_this.images.length == 1) _this.images = []
-              }, 1000);
-            });
-          });
-        }
+            }
+          }
+          resolve(files);
+        }).then(files => {
+          this.message = '';
+          db.ref(currentChatRoom+'/tasks').child(this.task.id).update({lastUpdate: createdAt});
+        });
+      } else {
         newMessage.update({
           msg: msg, 
           createdAt: createdAt, 
-          from: this.user,
-          files: files  
+          from: this.user
         });
+        this.message = '';
         db.ref(currentChatRoom+'/tasks').child(this.task.id).update({lastUpdate: createdAt});
-        this.message='';
       }
     },
     insert(emoji) {
-      this.message += emoji
+      this.message += emoji;
     },
-    filesChange(e) {
+    filesChange(e) {     
       for(let i = 0; i < e.target.files.length; i++) {
         let file = e.target.files[i];
         let fileInf = {
-              id: i,
-              name: file.name,
-              type: mimetype.lookup(file.name),
-              preview: window.URL.createObjectURL(file),
-              newName: Math.floor(Math.random() * 999999999) + '-' + file.name,
-              file: file
-            }
+          id: i,
+          name: file.name,
+          type: mimetype.lookup(file.name),
+          preview: window.URL.createObjectURL(file),
+          newName: Math.floor(Math.random() * 999999999) + '-' + file.name,
+          file: file,
+          downloadUrl: 'Here will be generate url'
+        }
         if(/image/.test(fileInf.type)) {
           this.images.push(fileInf);
         } else if (/x-rar-compressed/.test(fileInf.type) || /zip/.test(fileInf.type)) {
@@ -235,7 +275,7 @@ export default {
           this.videos.push(fileInf);
         }
       }
-      e.target.value = '';
+      // e.target.value = '';
     },
     viewName(str) {
       let name = str;

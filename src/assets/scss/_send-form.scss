@@ -2,8 +2,8 @@
   padding: $b-chat-send-form-pt $b-chat-send-form-pr $b-chat-send-form-pb $b-chat-send-form-pl;
   border-bottom: 1px solid $document-bg;
   font-size: 0;
-  position: relative;
   .form {
+    position: relative;
     display: flex;
     justify-content: space-between;
     align-items: center;

@@ -9,9 +9,9 @@
 
 .emoji-picker {
   position: absolute;
-  left: 15px;
-  right: 15px;
-  top: calc(100% - 20px);
+  left: 0;
+  right: 0;
+  top: calc(100% + 10px);
   z-index: 9999;
   font-family: Montserrat;
   border: 1px solid #ccc;
