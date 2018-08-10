@@ -7,6 +7,9 @@
   position: relative;
   &:hover {
     background-color: $document-bg;
+    .message__link {
+      background-color: #fff;
+    }
     &:before, &:after {
       background-color: $document-bg;
     }
@@ -54,7 +57,7 @@
       font-family: $light;
       font-size: 1rem;
       color: $dark;
-      white-space: pre;
+      white-space: pre-wrap;
     }
   }
   &__user-avatar {
@@ -118,7 +121,7 @@
     font-family: $light;
     color: $dark;
     text-align: center;
-    word-break: break-all;
+    white-space: nowrap;
   }
 }
 
@@ -142,4 +145,16 @@
     height: auto;
     margin: 0;
   }
+}
+
+.message__link {
+  display: block;
+  max-width: 50%;
+  background-color: $document-bg;
+  padding: 5px;
+  border-radius: 5px;
+  margin: .5rem;
+  transition: all .3s ease-in-out;
+  color: $dark;
+  font-family: $medium;
 }

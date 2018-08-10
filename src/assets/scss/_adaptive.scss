@@ -69,10 +69,16 @@
   .emoji-picker .emojis span {
     font-size: 1.5rem;
   }
+  .message__link {
+    width: 75%;
+  }
 }
 
 @media screen and (max-width: 480px) {
   body, html {
     font-size: 10px;
+  }
+  .message__link {
+    width: 100%;
   }
 }

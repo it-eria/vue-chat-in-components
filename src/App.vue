@@ -1,40 +1,60 @@
 <template>
   <div id="chat-app">
+    <SendFormComponent :general="true"></SendFormComponent>
     <transition-group name="flip-list" tag="div">
-      <TaskComponent v-for="task in tasks" :key="task.id" :task="task" :user="user"></TaskComponent>
+      <MessageComponent v-for="(message, idx) in messages" :key="idx" :message="message"></MessageComponent>
     </transition-group>
   </div>
 </template>
 
 <script>
-import TaskComponent from './components/TaskComponent'
+import SendFormComponent from './components/SendFormComponent'
+import MessageComponent from './components/MessageComponent'
 import { db, st } from './firebase'
-import { currentChatRoom, currentUser } from './main'
+import { currentChatRoom, currentUser, usersList } from './main'
 
 export default {
   name: 'chat-app',
   components: {
-    TaskComponent
+    SendFormComponent,
+    MessageComponent
   },
   data () {
     return {
-      tasks: [],
-      chat: currentChatRoom,
-      user: currentUser
+      messages: [],
+      nextKey: '',
+      usersList: []
     }
   },
   created () {
     let _this = this;
-    db.ref(this.chat).child('tasks').orderByChild('lastUpdate').on('value', function(snapshot) {
-      _this.tasks = [];
-      snapshot.forEach(function(child) {
-        _this.tasks.unshift(
-          {
-            id: child.key, 
-            lastUpdate: child.val().lastUpdate,
-            name: child.val().name,
-            messages: child.val().messages
+
+    // Get users appended to current chat
+    (function() {
+      return new Promise ((resolve, reject) => {
+        let usersArr = []
+        db.ref(currentChatRoom).child('users').on('value', function(snapshot) {
+          snapshot.forEach(function(child) {
+            if(child.val()) {
+              usersArr.push(child.key);
+            }
           });
+        });
+        resolve(usersArr);
+      }).then(usersArr => {
+        db.ref('users').once('value', function(snapshot) {
+          snapshot.forEach(function(child) {
+            console.log(child);
+          });
+        });
+      });
+    })();
+
+    let messagesRef = db.ref(currentChatRoom).child('messages');
+    messagesRef.limitToLast(5).once('value', function(snapshot) {
+      snapshot.forEach(function(child) {
+        _this.messages.push(child.val());
+        _this.nextKey = child.key;
       });
     });
   }

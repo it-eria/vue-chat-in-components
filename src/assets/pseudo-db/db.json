@@ -1,128 +1,45 @@
 {
   "chat-room-1" : {
-    "tasks" : {
-      "-LJ9Me-_RqJoKJ09x_cT" : {
-        "lastUpdate" : 1533657170316,
-        "name" : "Task 1"
+    "users": {
+      "-LJ8EKA6EIRDlHQ4i_a0": true,
+      "-LJ8Eq2DI86nwGLn8e62": true
+    },
+    "messages": {
+      "-LJ9Me-_RqJoKJ09x_cT": {
+        "updateAt": 1533657170316,
+        "from": "-LJ8EKA6EIRDlHQ4i_a0",
+        "msg": "First message"
       },
-      "-LJ9Mm3ZwhxhVBr6lYpq" : {
-        "lastUpdate" : 1533633116064,
-        "name" : "Task 2"
+      "-LJU1D4YIh1mrf88axW8": {
+        "updateAt": 1533633116064,
+        "groupName": "Task 1",
+        "msgGr": {
+          "-LJ9Mm3ZwhxhVBr6lYpq": {
+            "updateAt": 1533633116064,
+            "from": "-LJ8EKA6EIRDlHQ4i_a0",
+            "msg": "First message"
+          }   
+        }
       },
-      "-LJ9NMVBhurzZw6ksqzg" : {
-        "lastUpdate" : 1533824044215,
-        "messages" : {
-          "-LJU1D4YIh1mrf88axW8" : {
-            "createdAt" : 1533824000506,
-            "from" : "-LJ8Eq2DI86nwGLn8e62",
-            "msg" : "First message"
-          },
-          "-LJU1HSw4q4soVpLq6F4" : {
-            "createdAt" : 1533824018450,
-            "from" : "-LJ8Eq2DI86nwGLn8e62",
-            "msg" : "Message with smiles 👍😊😛"
-          },
-          "-LJU1NkQUnS-kID6RjjW" : {
-            "createdAt" : 1533824048141,
-            "files" : {
-              "archives" : [ {
-                "downloadUrl" : "https://firebasestorage.googleapis.com/v0/b/test-chat-c8873.appspot.com/o/upload%2F242969604-heart-1776746_960_720.rar?alt=media&token=3683e27a-f220-43f0-86b5-5ac56c3432f9",
-                "id" : 2,
-                "name" : "heart-1776746_960_720.rar",
-                "newName" : "242969604-heart-1776746_960_720.rar",
-                "preview" : "blob:http://localhost:8080/f54a44d5-20f2-40b9-b11c-922b8b11748c",
-                "type" : "application/x-rar-compressed"
-              }, {
-                "downloadUrl" : "https://firebasestorage.googleapis.com/v0/b/test-chat-c8873.appspot.com/o/upload%2F392848193-heart-1776746_960_720.zip?alt=media&token=8408237e-1e8f-4586-95e4-20be8db2c4cb",
-                "id" : 3,
-                "name" : "heart-1776746_960_720.zip",
-                "newName" : "392848193-heart-1776746_960_720.zip",
-                "preview" : "blob:http://localhost:8080/5f1523c1-b4a3-4c1b-aeaa-faf00a1b1f36",
-                "type" : "application/zip"
-              } ],
-              "documents" : [ {
-                "downloadUrl" : "https://firebasestorage.googleapis.com/v0/b/test-chat-c8873.appspot.com/o/upload%2F849778868-file.pdf?alt=media&token=c69888b9-5995-4540-b7d4-fffcb040f66d",
-                "id" : 0,
-                "name" : "file.pdf",
-                "newName" : "849778868-file.pdf",
-                "preview" : "blob:http://localhost:8080/b772d626-b36d-46be-aa32-273c5b71bff8",
-                "type" : "application/pdf"
-              }, {
-                "downloadUrl" : "https://firebasestorage.googleapis.com/v0/b/test-chat-c8873.appspot.com/o/upload%2F436601510-test-doc.docx?alt=media&token=fd732476-d699-49ac-a0d1-30685e6ba15c",
-                "id" : 6,
-                "name" : "test-doc.docx",
-                "newName" : "436601510-test-doc.docx",
-                "preview" : "blob:http://localhost:8080/de2ee105-e48b-4dd7-a89a-5df59d8730c0",
-                "type" : "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-              }, {
-                "downloadUrl" : "https://firebasestorage.googleapis.com/v0/b/test-chat-c8873.appspot.com/o/upload%2F924315755-test-doc-2.doc?alt=media&token=8dc1548e-6ae6-4240-8fec-6eb6510ac366",
-                "id" : 7,
-                "name" : "test-doc-2.doc",
-                "newName" : "924315755-test-doc-2.doc",
-                "preview" : "blob:http://localhost:8080/a5db92ba-a858-45a9-b373-a2ac083ba0d0",
-                "type" : "application/msword"
-              }, {
-                "downloadUrl" : "https://firebasestorage.googleapis.com/v0/b/test-chat-c8873.appspot.com/o/upload%2F960183325-test-table.xlsx?alt=media&token=9738d237-394f-40f0-a541-ddfb28fea5be",
-                "id" : 8,
-                "name" : "test-table.xlsx",
-                "newName" : "960183325-test-table.xlsx",
-                "preview" : "blob:http://localhost:8080/c6a90bdb-9b0a-4340-a784-358ae3538bc1",
-                "type" : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-              }, {
-                "downloadUrl" : "https://firebasestorage.googleapis.com/v0/b/test-chat-c8873.appspot.com/o/upload%2F619329152-text.txt?alt=media&token=4a747895-02f4-4f32-9136-5270ee38b5a4",
-                "id" : 9,
-                "name" : "text.txt",
-                "newName" : "619329152-text.txt",
-                "preview" : "blob:http://localhost:8080/1b25d755-6444-4ef5-8e2a-ebc7200c64b5",
-                "type" : "text/plain"
-              } ],
-              "images" : [ {
-                "downloadUrl" : "https://firebasestorage.googleapis.com/v0/b/test-chat-c8873.appspot.com/o/upload%2F350811177-heart-1776746_960_720.jpg?alt=media&token=ab00382c-2570-4162-b4c8-1c872fcfa942",
-                "id" : 1,
-                "name" : "heart-1776746_960_720.jpg",
-                "newName" : "350811177-heart-1776746_960_720.jpg",
-                "preview" : "blob:http://localhost:8080/58bcb27a-283a-4957-be70-efe60db437aa",
-                "type" : "image/jpeg"
-              }, {
-                "downloadUrl" : "https://firebasestorage.googleapis.com/v0/b/test-chat-c8873.appspot.com/o/upload%2F311803329-mdoying_180117_2249_google_rock.1522180168.gif?alt=media&token=7ae49d19-969f-491f-a32e-bca992eacb66",
-                "id" : 4,
-                "name" : "mdoying_180117_2249_google_rock.1522180168.gif",
-                "newName" : "311803329-mdoying_180117_2249_google_rock.1522180168.gif",
-                "preview" : "blob:http://localhost:8080/923e4076-21ad-4836-bf98-fac0143ff585",
-                "type" : "image/gif"
-              }, {
-                "downloadUrl" : "https://firebasestorage.googleapis.com/v0/b/test-chat-c8873.appspot.com/o/upload%2F832832569-PNG_transparency_demonstration_1.png?alt=media&token=76d7e609-4a5d-47f5-acf8-b4954eb000dd",
-                "id" : 5,
-                "name" : "PNG_transparency_demonstration_1.png",
-                "newName" : "832832569-PNG_transparency_demonstration_1.png",
-                "preview" : "blob:http://localhost:8080/2e4f9bd3-0470-4f24-ab4a-bfd70eba0cc9",
-                "type" : "image/png"
-              } ],
-              "videos" : [ {
-                "downloadUrl" : "https://firebasestorage.googleapis.com/v0/b/test-chat-c8873.appspot.com/o/upload%2F413348288-video-1.mov?alt=media&token=5a081ad9-9cd2-4761-857c-896b41a24437",
-                "id" : 10,
-                "name" : "video-1.mov",
-                "newName" : "413348288-video-1.mov",
-                "preview" : "blob:http://localhost:8080/c69bf73d-2d43-45ae-8566-e21570ba0b80",
-                "type" : "video/quicktime"
-              }, {
-                "downloadUrl" : "https://firebasestorage.googleapis.com/v0/b/test-chat-c8873.appspot.com/o/upload%2F910071210-video-2.mp4?alt=media&token=c2718c1d-35f3-444e-a61f-5852afbe0555",
-                "id" : 11,
-                "name" : "video-2.mp4",
-                "newName" : "910071210-video-2.mp4",
-                "preview" : "blob:http://localhost:8080/6e588bee-9f7e-429b-bd4a-da65e8637b5b",
-                "type" : "video/mp4"
-              }, {
-                "downloadUrl" : "https://firebasestorage.googleapis.com/v0/b/test-chat-c8873.appspot.com/o/upload%2F994327723-video-3.avi?alt=media&token=42d6080d-7f2b-4147-9053-570d68934ccc",
-                "id" : 12,
-                "name" : "video-3.avi",
-                "newName" : "994327723-video-3.avi",
-                "preview" : "blob:http://localhost:8080/4fd74a31-eed8-40fe-a759-35fe1f570ec4",
-                "type" : "video/x-msvideo"
-              } ]
-            },
-            "from" : "-LJ8Eq2DI86nwGLn8e62",
-            "msg" : "Mesage with files"
+      "-LJ9Mm3ZwhxhVBr6lYpq": {
+        "updateAt": 1533657170316,
+        "groupName": "Task 2",
+        "msgGr": {
+          "-LJ9Mm3ZwhxhVBr6lYpq": {
+            "updateAt": 1533657170316,
+            "from": "-LJ8Eq2DI86nwGLn8e62",
+            "msg": "First message",
+            "files": {
+              "videos": {
+                "0": {
+                  "downloadUrl": "https://firebasestorage.googleapis.com/v0/b/test-chat-c8873.appspot.com/o/upload%2F121268876-27775758_261084451296041_3195916340308370040_n.mp4?alt=media&token=71298b10-b983-4635-8bcc-73457246074b",
+                  "name": "27775758_261084451296041_3195916340308370040_n.mp4",
+                  "newName": "121268876-27775758_261084451296041_3195916340308370040_n.mp4",
+                  "preview": "blob:https://test-chat-c8873.firebaseapp.com/b0da60df-45c6-4b0c-819a-26283843eaf7",
+                  "type": "video/mp4"
+                }                
+              }
+            }
           }
         }
       }
