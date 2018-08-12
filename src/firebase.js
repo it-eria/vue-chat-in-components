@@ -14,3 +14,5 @@ const firebaseApp = firebase.initializeApp({
 // Export the database for components to use.
 export const db = firebaseApp.database();
 export const st = firebaseApp.storage();
+export const currentChatRoom = 'chat-room-1'
+export const currentUser = '-LJ8Eq2DI86nwGLn8e62'

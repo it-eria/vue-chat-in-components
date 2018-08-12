@@ -1,10 +1,10 @@
 <template>
-  <div :class="[!!general ? 'b-chat b-chat--task' : '']">
+  <div :class="[!!general ? 'b-chat b-chat--task' : null]">
     <div v-if="!general" class="b-chat__aside">
       <a href="#" class="toggle-btn" @click.prevent="collapse.collapse = !collapse.collapse"></a>
     </div>
     <div class="b-chat__title">
-      <h2></h2>
+      <h2>{{groupName}}</h2>
     </div>
     <!-- Send form -->
     <div class="b-chat__send-form">
@@ -95,9 +95,9 @@
 
 <script>
 import EmojiPicker from 'vue-emoji-picker'
-import mimetype from 'mimetype'
-import { currentUser } from '../main'
-import { db, st } from '../firebase'
+import mimetype from 'mimetype';
+import firebase from 'firebase/app';
+import { db, st, currentChatRoom, currentUser } from '../firebase'
 
 export default {
   components: {
@@ -105,7 +105,9 @@ export default {
   },
   props: {
     general: Boolean,
-    collapse: Object
+    collapse: Object,
+    groupName: String,
+    sendTo: String
   },
   data() {
     return {
@@ -163,7 +165,18 @@ export default {
       filesTypeArray.splice(findedIndex, 1);
     },
     addMessage (msg) {
-      
+      let ref;
+      if(this.general) {
+        ref = db.ref(currentChatRoom).child('messages');
+      } else {
+        ref = db.ref(currentChatRoom).child('messages/'+this.sendTo).child('msgGr');
+      }
+      ref.push({
+        updateAt: firebase.database.ServerValue.TIMESTAMP,
+        from: currentUser,
+        msg: msg
+      });
+      this.message = ''
     },
     viewName(str) {
       let name = str;
