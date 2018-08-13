@@ -29,7 +29,7 @@ export default {
   created () {
     let _this = this;
 
-    // Get users appended to current chat
+    // Get users data appended to current chat
     (function() {
       return new Promise ((resolve, reject) => {
         let usersArr = []
@@ -42,11 +42,13 @@ export default {
         });
         resolve(usersArr);
       }).then(usersArr => {
-        db.ref('users').once('value', function(snapshot) {
-          snapshot.forEach(function(child) {
-            console.log(child);
+        let usersData = [];
+        return new Promise.all(usersArr.map(function(id) {
+          db.ref('users').child(id).once('value', function(snapshot) {
+            usersData.push(snapshot.val())
           });
-        });
+          return usersData;
+        })).then(_this.usersList => { console.log(_this) })
       });
     })();
 
