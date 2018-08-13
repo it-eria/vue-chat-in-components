@@ -1,17 +1,17 @@
 <template>
-  <div id="chat-app">
+  <div id="chat-app" v-if="(Object.keys(users).length > 0) && (Object.keys(messages).length > 0)">
     <SendFormComponent :general="true"></SendFormComponent>
     <transition-group name="flip-list" tag="div">
-      <MessageComponent v-for="(message, idx) in messages" :key="idx" :message="message"></MessageComponent>
+      <MessageComponent v-for="message in messageGlobalArr" :key="message.id" :message="message" :users="users" :index="message.id"></MessageComponent>
     </transition-group>
+    <!-- <button @click.prevent="loadMore(lastKey)">Load more</button> -->
   </div>
 </template>
 
 <script>
 import SendFormComponent from './components/SendFormComponent'
 import MessageComponent from './components/MessageComponent'
-import { db, st } from './firebase'
-import { currentChatRoom, currentUser, usersList } from './main'
+import { db, st, currentChatRoom, currentUser } from './firebase'
 
 export default {
   name: 'chat-app',
@@ -21,44 +21,41 @@ export default {
   },
   data () {
     return {
-      messages: [],
-      nextKey: '',
-      usersList: []
+      lastKey: '',
+      messages: {},
+      users: {},
     }
   },
-  created () {
+  computed: {
+    messageGlobalArr: function() {
+      let arr = [];
+      for(let key in this.messages) {
+        console.log();
+        let obj = this.messages[key];
+        obj.id = key;
+        arr.push(obj);
+      }
+      return arr.reverse();
+    }
+  },
+  beforeCreate () {
     let _this = this;
-
-    // Get users data appended to current chat
-    (function() {
-      return new Promise ((resolve, reject) => {
-        let usersArr = []
-        db.ref(currentChatRoom).child('users').on('value', function(snapshot) {
-          snapshot.forEach(function(child) {
-            if(child.val()) {
-              usersArr.push(child.key);
-            }
-          });
-        });
-        resolve(usersArr);
-      }).then(usersArr => {
-        let usersData = [];
-        return new Promise.all(usersArr.map(function(id) {
-          db.ref('users').child(id).once('value', function(snapshot) {
-            usersData.push(snapshot.val())
-          });
-          return usersData;
-        })).then(_this.usersList => { console.log(_this) })
-      });
-    })();
-
-    let messagesRef = db.ref(currentChatRoom).child('messages');
-    messagesRef.limitToLast(5).once('value', function(snapshot) {
-      snapshot.forEach(function(child) {
-        _this.messages.push(child.val());
-        _this.nextKey = child.key;
-      });
+    db.ref('users').once('value').then(snapshot => {
+      this.users = snapshot.val();
     });
+    db.ref(currentChatRoom).child('messages').on('value', function(snapshot) {
+      _this.messages = snapshot.val();
+      _this.lastKey = Object.keys(snapshot.val())[Object.keys(snapshot.val()).length - 1];
+    });
+  },
+  methods: {
+    // loadMore(from) {
+    //   let _this = this;
+    //   db.ref(currentChatRoom).child('messages').startAt(from).on('value', function(snapshot) {
+    //     _this.messages = snapshot.val();
+    //     _this.lastKey = Object.keys(snapshot.val())[0];
+    //   });
+    // } 
   }
 }
 </script>

@@ -1,10 +1,10 @@
 <template>
-  <div :class="[!!general ? 'b-chat b-chat--task' : '']">
+  <div :class="[!!general ? 'b-chat b-chat--task' : null]">
     <div v-if="!general" class="b-chat__aside">
       <a href="#" class="toggle-btn" @click.prevent="collapse.collapse = !collapse.collapse"></a>
     </div>
     <div class="b-chat__title">
-      <h2></h2>
+      <h2>{{groupName}}</h2>
     </div>
     <!-- Send form -->
     <div class="b-chat__send-form">
@@ -44,7 +44,7 @@
           <div class="img-miniature">
             <button class="close-btn" @click.prevent="removeFile(files.images, image.newName)"></button>
             <img :src="image.preview" alt="photo">
-            <div class="b-uploading" :id="'img-'+idx">
+            <div class="b-uploading" :id="'img-'+image.id">
               Loading...
             </div>
           </div>
@@ -56,7 +56,7 @@
           <div class="img-miniature">
             <button class="close-btn" @click.prevent="removeFile(files.videos, video.newName)"></button>
             <img src="../assets/img/video.svg" alt="video">
-            <div class="b-uploading" :id="'vid-'+idx">
+            <div class="b-uploading" :id="'vid-'+video.id">
               Loading...
             </div>
           </div>
@@ -68,7 +68,7 @@
           <div class="img-miniature">
             <button class="close-btn" @click.prevent="removeFile(files.documents, doc.newName)"></button>
             <img src="../assets/img/document.svg" alt="document">
-            <div class="b-uploading" :id="'doc-'+idx">
+            <div class="b-uploading" :id="'doc-'+doc.id">
               Loading...
             </div>
           </div>
@@ -80,7 +80,7 @@
           <div class="img-miniature">
             <button class="close-btn" @click.prevent="removeFile(files.archives, archive.newName)"></button>
             <img src="../assets/img/archive.svg" alt="archive">
-            <div class="b-uploading" :id="'arch-'+idx">
+            <div class="b-uploading" :id="'arch-'+archive.id">
               Loading...
             </div>
           </div>
@@ -95,9 +95,9 @@
 
 <script>
 import EmojiPicker from 'vue-emoji-picker'
-import mimetype from 'mimetype'
-import { currentUser } from '../main'
-import { db, st } from '../firebase'
+import mimetype from 'mimetype';
+import firebase from 'firebase/app';
+import { db, st, currentChatRoom, currentUser } from '../firebase'
 
 export default {
   components: {
@@ -105,7 +105,9 @@ export default {
   },
   props: {
     general: Boolean,
-    collapse: Object
+    collapse: Object,
+    groupName: String,
+    sendTo: String
   },
   data() {
     return {
@@ -114,8 +116,8 @@ export default {
       files: {
         images: [],
         videos: [],
-        documents: [],
-        archives: []
+        archives: [],
+        documents: []
       }
     }
   },
@@ -135,12 +137,13 @@ export default {
       let filesList = e.target.files;
       for(let i = 0; i < filesList.length; i++) {
         let fileInfo = {
+          id: i,
           name: filesList[i].name,
           type: mimetype.lookup(filesList[i].name),
           preview: window.URL.createObjectURL(filesList[i]),
           newName: Math.floor(Math.random() * 999999999) + '-' + filesList[i].name,
           file: filesList[i],
-          downloadUrl: 'Here will be generate url'
+          downloadUrl: ''
         }
         if(/image/.test(fileInfo.type)) {
           this.files.images.push(fileInfo);
@@ -161,9 +164,73 @@ export default {
         if(filesTypeArray[i].newName == specificValue) break; 
       }
       filesTypeArray.splice(findedIndex, 1);
+      console.log(filesTypeArray);
+      console.log('----------------');
+      console.log(this.files);
     },
-    addMessage (msg) {
-      
+    addMessage(msg) {
+      let _this = this;
+      let ref;
+      let refGr = false;
+      let files = this.files;
+      let idPrefix = '';
+      if(this.general) {
+        ref = db.ref(currentChatRoom).child('messages').push();
+      } else {
+        ref = db.ref(currentChatRoom).child('messages/'+this.sendTo).child('msgGr').push();
+        refGr = db.ref(currentChatRoom).child('messages/'+this.sendTo);
+      }
+      let updateAt = firebase.database.ServerValue.TIMESTAMP;
+      if(refGr) refGr.update({updateAt: updateAt});
+      ref.update({
+        msg: msg,
+        updateAt: updateAt,
+        files: files
+      });
+      if(files.images.length == 0 && files.videos.length == 0 && files.documents.length == 0 && files.archives.length == 0) {
+        ref.update({from: currentUser});
+        this.files = {
+          images: [],
+          videos: [],
+          archives: [],
+          documents: []
+        };
+      }
+      for(let key in files) {
+        for(let i=0; i<files[key].length; i++) {
+          switch (key) {
+            case 'images':
+              idPrefix = 'img-';
+              break;
+            case 'videos':
+              idPrefix = 'vid-';
+              break;
+            case 'documents':
+              idPrefix = 'doc-';
+              break;
+            case 'archives':
+              idPrefix = 'arch-';
+              break;
+          }
+          let el = document.getElementById(idPrefix + files[key][i].id);
+          el.style.opacity = 1;
+          st.ref('upload').child(files[key][i].newName).put(files[key][i].file).then(function(snapshot) {
+            return snapshot.ref.getDownloadURL();
+          }).then(downloadUrl => {
+            files[key][i].downloadUrl = downloadUrl;
+            el.innerText = "Success";
+            el.classList.add('b-uploading--success');
+            setTimeout(function() {
+              el.parentNode.parentNode.remove();
+            }, 2000);
+            if(key == Object.keys(files)[Object.keys(files).length - 1] && i == (files[key].length - 1)) {
+              ref.update({from: currentUser, files: files});
+              files = {};
+            }
+          });
+        }
+      }
+      this.message = '';
     },
     viewName(str) {
       let name = str;
