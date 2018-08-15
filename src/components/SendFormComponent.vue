@@ -34,59 +34,26 @@
           </div>
         </emoji-picker>
         <div class="b-chat__send-form__upload-btn" @change="addFiles($event)">
-          <input type="file" multiple>
+          <label for="upload-files"></label>
+          <input type="file" multiple id="upload-files">
         </div>
         <button class="b-chat__send-form__send-btn" @click.prevent="addMessage (message)">Send</button>
       </div>
       <div class="uploaded-files-preview">
-        <!-- Image miniatures -->
-        <div v-for="(image, idx) in files.images" :key="'img-'+idx" class="b-file b-file--photo">
-          <div class="img-miniature">
-            <button class="close-btn" @click.prevent="removeFile(files.images, image.newName)"></button>
-            <img :src="image.preview" alt="photo">
-            <div class="b-uploading" :id="'img-'+image.id">
-              Loading...
+        <!-- Files miniature -->
+        <transition-group name="list-complete" tag="div">
+          <div v-for="file in filesBuffer" :key="file.id" :class="getClass(file.type)">
+            <div class="img-miniature">
+              <button class="close-btn" @click.prevent="removeFile(file.id)"></button>
+              <img :src="file.preview ? file.preview : getIconPath(file.type)" alt="thumbnail">
+              <div class="b-uploading" :id="file.id">
+                Loading...
+              </div>
             </div>
+            <span>{{viewName(file.name)}}</span>
           </div>
-          <span>{{viewName(image.name)}}</span>
-        </div>        
-        <!-- /Image miniatures -->
-        <!-- Video miniatures -->
-        <div v-for="(video, idx) in files.videos" :key="'vid-'+idx" class="b-file b-file--video list-complete-item">
-          <div class="img-miniature">
-            <button class="close-btn" @click.prevent="removeFile(files.videos, video.newName)"></button>
-            <img src="../assets/img/video.svg" alt="video">
-            <div class="b-uploading" :id="'vid-'+video.id">
-              Loading...
-            </div>
-          </div>
-          <span>{{viewName(video.name)}}</span>
-        </div>
-        <!-- /Video miniatures -->
-        <!-- Document miniatures -->
-        <div v-for="(doc, idx) in files.documents" :key="'doc-'+idx" class="b-file b-file--document list-complete-item">
-          <div class="img-miniature">
-            <button class="close-btn" @click.prevent="removeFile(files.documents, doc.newName)"></button>
-            <img src="../assets/img/document.svg" alt="document">
-            <div class="b-uploading" :id="'doc-'+doc.id">
-              Loading...
-            </div>
-          </div>
-          <span>{{viewName(doc.name)}}</span>
-        </div>
-        <!-- /Document miniatures -->
-        <!-- Archives miniatures -->
-        <div v-for="(archive, idx) in files.archives" :key="'arch-'+idx" class="b-file b-file--archive list-complete-item">
-          <div class="img-miniature">
-            <button class="close-btn" @click.prevent="removeFile(files.archives, archive.newName)"></button>
-            <img src="../assets/img/archive.svg" alt="archive">
-            <div class="b-uploading" :id="'arch-'+archive.id">
-              Loading...
-            </div>
-          </div>
-          <span>{{viewName(archive.name)}}</span>
-        </div>
-        <!-- /Archives miniatures -->
+        </transition-group>
+        <!-- /Files miniature -->
       </div>
     </div>
     <!-- Send form -->
@@ -113,12 +80,8 @@ export default {
     return {
       message: '',
       search: '',
-      files: {
-        images: [],
-        videos: [],
-        archives: [],
-        documents: []
-      }
+      filesBuffer: [],
+      isFilesUploaded: false
     }
   },
   methods: {
@@ -133,104 +96,117 @@ export default {
     insert (emoji) {
       this.message += emoji;
     },
+    getClass(fileType) {
+      let returnClasses = 'list-complete-item b-file';
+      if(fileType == 'image') {
+        returnClasses += ' b-file--photo'
+      } else {
+        returnClasses += ' list-complete-item b-file--'+fileType
+      }
+      return returnClasses;
+    },
+    getIconPath(fileType) {
+      let iconName = '';
+      switch(fileType) {
+        case 'video':
+          iconName = 'video.svg';
+          break; 
+        case 'archive': 
+          iconName = 'archive.svg';
+          break;
+        case 'document':
+          iconName = 'document.svg';
+          break;
+      }
+      return require('../assets/img/' + iconName);
+    },
     addFiles (e) {
-      let filesList = e.target.files;
-      for(let i = 0; i < filesList.length; i++) {
-        let fileInfo = {
-          id: i,
-          name: filesList[i].name,
-          type: mimetype.lookup(filesList[i].name),
-          preview: window.URL.createObjectURL(filesList[i]),
-          newName: Math.floor(Math.random() * 999999999) + '-' + filesList[i].name,
-          file: filesList[i],
-          downloadUrl: ''
+      if(this.isFilesUploaded) {
+        this.filesBuffer = [];
+        this.isFilesUploaded = false;
+      }
+      let files = e.target.files;
+      for(let i = 0; i < files.length; i++) {
+        let rnd = Math.floor(Math.random() * 999999999);
+        let type = '';
+        let mime = mimetype.lookup(files[i].name);
+        let preview = null;
+        if(/image/.test(mime)) {
+          type = 'image';
+          preview = window.URL.createObjectURL(files[i]);
+        } else if (/x-rar-compressed/.test(mime) || /zip/.test(mime)) {
+          type = 'archive';
+        } else if(/officedocument/.test(mime) || /msword/.test(mime) || /text/.test(mime) || /pdf/.test(mime)) {
+          type = 'document';
+        } else if(/video/.test(mime)) {
+          type = 'video';
         }
-        if(/image/.test(fileInfo.type)) {
-          this.files.images.push(fileInfo);
-        } else if (/x-rar-compressed/.test(fileInfo.type) || /zip/.test(fileInfo.type)) {
-          this.files.archives.push(fileInfo);
-        } else if(/officedocument/.test(fileInfo.type) || /msword/.test(fileInfo.type) || /text/.test(fileInfo.type) || /pdf/.test(fileInfo.type)) {
-          this.files.documents.push(fileInfo);
-        } else if(/video/.test(fileInfo.type)) {
-          this.files.videos.push(fileInfo);
-        }  
+        this.filesBuffer.push({
+          id: rnd,
+          name: files[i].name,
+          newName: rnd + files[i].name,
+          type: type,
+          preview: preview,
+          file: files[i],
+          downloadUrl: ''
+        }); 
       }
       e.target.value = '';
     },
-    removeFile(filesTypeArray, specificValue) {
+    removeFile(id) {
       let findedIndex = 0;
-      for(let i=0; i < filesTypeArray.length; i++) {
+      for(let i=0; i < this.filesBuffer.length; i++) {
         findedIndex = i;
-        if(filesTypeArray[i].newName == specificValue) break; 
+        if(this.filesBuffer[i].id == id) break; 
       }
-      filesTypeArray.splice(findedIndex, 1);
-      console.log(filesTypeArray);
-      console.log('----------------');
-      console.log(this.files);
+      this.filesBuffer.splice(findedIndex, 1);
     },
     addMessage(msg) {
       let _this = this;
-      let ref;
-      let refGr = false;
-      let files = this.files;
-      let idPrefix = '';
-      if(this.general) {
-        ref = db.ref(currentChatRoom).child('messages').push();
-      } else {
-        ref = db.ref(currentChatRoom).child('messages/'+this.sendTo).child('msgGr').push();
-        refGr = db.ref(currentChatRoom).child('messages/'+this.sendTo);
-      }
       let updateAt = firebase.database.ServerValue.TIMESTAMP;
-      if(refGr) refGr.update({updateAt: updateAt});
-      ref.update({
-        msg: msg,
-        updateAt: updateAt,
-        files: files
-      });
-      if(files.images.length == 0 && files.videos.length == 0 && files.documents.length == 0 && files.archives.length == 0) {
-        ref.update({from: currentUser});
-        this.files = {
-          images: [],
-          videos: [],
-          archives: [],
-          documents: []
-        };
+      let child = this.general ? 'messages' : 'messages/'+this.sendTo+'/msgGr';
+      let ref = db.ref(currentChatRoom).child(child).push();
+      if(this.isFilesUploaded) {
+        this.filesBuffer = [];
+        this.isFilesUploaded = false;
       }
-      for(let key in files) {
-        for(let i=0; i<files[key].length; i++) {
-          switch (key) {
-            case 'images':
-              idPrefix = 'img-';
-              break;
-            case 'videos':
-              idPrefix = 'vid-';
-              break;
-            case 'documents':
-              idPrefix = 'doc-';
-              break;
-            case 'archives':
-              idPrefix = 'arch-';
-              break;
-          }
-          let el = document.getElementById(idPrefix + files[key][i].id);
-          el.style.opacity = 1;
-          st.ref('upload').child(files[key][i].newName).put(files[key][i].file).then(function(snapshot) {
-            return snapshot.ref.getDownloadURL();
-          }).then(downloadUrl => {
-            files[key][i].downloadUrl = downloadUrl;
-            el.innerText = "Success";
-            el.classList.add('b-uploading--success');
-            setTimeout(function() {
-              el.parentNode.parentNode.remove();
-            }, 2000);
-            if(key == Object.keys(files)[Object.keys(files).length - 1] && i == (files[key].length - 1)) {
-              ref.update({from: currentUser, files: files});
-              files = {};
+      if(!this.general) {
+        db.ref(currentChatRoom).child('messages/'+this.sendTo).update({updateAt: updateAt});
+      }
+      if(this.filesBuffer.length > 0) {
+        let checkCount = 0;
+        for(let i=0; i < this.filesBuffer.length; i++) {
+          document.getElementById(_this.filesBuffer[i].id).style.opacity = 1;
+          st.ref('upload').child(this.filesBuffer[i].newName).put(this.filesBuffer[i].file)
+          .then(res => {
+            document.getElementById(_this.filesBuffer[i].id).classList.add('b-uploading--success');
+            document.getElementById(_this.filesBuffer[i].id).innerHTML = 'Success';
+            return res.ref.getDownloadURL();
+          }).then(url => {
+            document.getElementById(_this.filesBuffer[i].id).parentNode.parentNode.style.display = 'none';
+            checkCount++;
+            _this.filesBuffer[i].downloadUrl = url;
+            if(checkCount == _this.filesBuffer.length) {
+              ref.update({
+                msg: msg,
+                from: currentUser,
+                updateAt: updateAt,
+                files: _this.filesBuffer     
+              });
+              this.message = '';
+              this.isFilesUploaded = true;
             }
-          });
+          });          
         }
+      } else {
+        ref.update({
+          msg: msg,
+          from: currentUser,
+          updateAt: updateAt
+        });
+        this.message = '';
       }
-      this.message = '';
+      document.getElementById('chat-app').scrollTo(0, 0);
     },
     viewName(str) {
       let name = str;
@@ -252,5 +228,18 @@ export default {
   @import '../assets/scss/send-form';
   @import '../assets/scss/emoji';
   @import '../assets/scss/adaptive';
+  .list-complete-item {
+    transition: all .5s ease-in-out;
+  }
+  .list-complete-enter, .list-complete-leave-to {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  .list-complete-leave-active {
+    position: absolute !important;
+  }
+  .toggle-btn {
+    transition: all .3s ease-in-out;
+  }
 </style>
 

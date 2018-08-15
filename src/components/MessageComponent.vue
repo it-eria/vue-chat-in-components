@@ -1,5 +1,5 @@
 <template>
-  <div :class="[!collapseMessageGroup.collapse ? 'b-chat b-chat--task' : 'b-chat b-chat--task closed']">
+  <div :class="[!collapseMessageGroup.collapse ? 'b-chat b-chat--single b-chat--task' : 'b-chat b-chat--single b-chat--task closed']">
     <SendFormComponent v-if="message.msgGr" :general="false" :collapse="collapseMessageGroup" :groupName="message.groupName" :sendTo="message.id"></SendFormComponent>
     <!-- Grouped messages template -->
     <div v-if="message.msgGr">
@@ -13,26 +13,18 @@
           <span>{{getTime(grMessage.updateAt)}}</span>
         </div>
         <div class="b-chat__message__message-line">
-          <p v-html="findLinksInMessage(grMessage.msg)"></p>
+          <p v-html="findLinksInMessage(grMessage.msg)"></p>          
         </div>
         <div v-if="grMessage.files" class="b-chat__message__files-line">
           <div class="non-photos">
-            <a :href="getDownloadLink(video.newName)"  v-for="(video, idx) in grMessage.files.videos" :key="'vid-'+idx" class="file-link file-link--video" target="_blank">
-              <img src="../assets/img/video.svg" alt="video">
-              <span>{{viewName(video.name)}}</span>
-            </a>
-            <a :href="getDownloadLink(document.newName)" v-for="(document, idx) in grMessage.files.documents" :key="'doc-'+idx" class="file-link file-link--document" target="_blank">
-              <img src="../assets/img/document.svg" alt="document">
-              <span>{{viewName(document.name)}}</span>
-            </a>
-            <a :href="getDownloadLink(archive.newName)" v-for="(archive, idx) in grMessage.files.archives" :key="'arch-'+idx" class="file-link file-link--archive">
-              <img src="../assets/img/archive.svg" alt="archive">
-              <span>{{viewName(archive.name)}}</span>
+            <a v-if="!(file.type == 'image')" :href="file.downloadUrl" v-for="file in grMessage.files" :key="file.id" :class="getFileMiniatureClass(file.type)" target="_blank">
+              <img :src="getIconPath(file.type)" alt="video">
+              <span>{{viewName(file.name)}}</span>
             </a>
           </div>
           <div class="photos">
-            <a :href="getDownloadLink(image.newName)" v-for="(image, idx) in grMessage.files.images" :key="'img-'+idx" target="_blank">
-              <img :src="getDownloadLink(image.newName)" alt="photo" >
+            <a v-if="file.type == 'image'" :href="file.downloadUrl" v-for="file in grMessage.files" :key="file.id" target="_blank">
+              <img :src="file.downloadUrl" :alt="file.name" >
             </a>
           </div> 
         </div>
@@ -51,31 +43,20 @@
           <span>{{getTime(message.updateAt)}}</span>
         </div>
         <div class="b-chat__message__message-line">
-          <p v-html="findLinksInMessage(message.msg)"></p>
+          <p v-html="findLinksInMessage(message.msg)"></p>          
         </div>
         <div v-if="message.files" class="b-chat__message__files-line">
-          <pre>
-            {{message.files}}
-          </pre>
           <div class="non-photos">
-            <a :href="getDownloadLink(video.newName)"  v-for="(video, idx) in message.files.videos" :key="'vid-'+idx" class="file-link file-link--video" target="_blank">
-              <img src="../assets/img/video.svg" alt="video">
-              <span>{{viewName(video.name)}}</span>
-            </a>
-            <a :href="document.downloadUrl" v-for="(document, idx) in message.files.documents" :key="'doc-'+idx" class="file-link file-link--document" target="_blank">
-              <img src="../assets/img/document.svg" alt="document">
-              <span>{{viewName(document.name)}}</span>
-            </a>
-            <a :href="getDownloadLink(archive.newName)" v-for="(archive, idx) in message.files.archives" :key="'arch-'+idx" class="file-link file-link--archive">
-              <img src="../assets/img/archive.svg" alt="archive">
-              <span>{{viewName(archive.name)}}</span>
+            <a v-if="!(file.type == 'image')" :href="file.downloadUrl" v-for="file in message.files" :key="file.id" :class="getFileMiniatureClass(file.type)" target="_blank">
+              <img :src="getIconPath(file.type)" alt="video">
+              <span>{{viewName(file.name)}}</span>
             </a>
           </div>
           <div class="photos">
-            <a :href="image.downloadUrl" v-for="(image, idx) in message.files.images" :key="'img-'+idx" target="_blank">
-              <img :src="image.downloadUrl" alt="photo" >
+            <a v-if="file.type == 'image'" :href="file.downloadUrl" v-for="file in message.files" :key="file.id" target="_blank">
+              <img :src="file.downloadUrl" :alt="file.name" >
             </a>
-          </div> 
+          </div>  
         </div>
       </div>
     </div>
@@ -85,8 +66,12 @@
 
 <script>
 import SendFormComponent from './SendFormComponent'
+import AutoLinker from 'autolinker'
+import cheerio from 'cheerio'
+import request from 'request'
 import { db, st } from '../firebase'
-import anchorme from 'anchorme'
+
+
 
 export default {
   components: {
@@ -100,8 +85,7 @@ export default {
     return {
       collapseMessageGroup: {
         collapse: true
-      },
-      imageLinks: {}
+      }
     }
   },
   computed: {
@@ -144,25 +128,40 @@ export default {
       }
       return name;
     },
-    findLinksInMessage(str) {
-      let options = {
-        truncate: [26,15],
-        attributes: [
-          {
-            name: 'class',
-            value: 'message__link'
-          },
-          {
-            name: 'target',
-            value: 'blank'
-          }
-        ],
-        defaultProtocol:"https://"
-      }
-      return anchorme(str, options);
+    getFileMiniatureClass(fileType) {
+      return 'file-link file-link--' + fileType;
     },
-    getDownloadLink(child) {
-      
+    getIconPath(fileType) {
+      let iconName = '';
+      switch(fileType) {
+        case 'video':
+          iconName = 'video.svg';
+          break; 
+        case 'archive': 
+          iconName = 'archive.svg';
+          break;
+        case 'document':
+          iconName = 'document.svg';
+          break;
+      }
+      return require('../assets/img/' + iconName);
+    },
+    findLinksInMessage(str) {
+      let newStr = AutoLinker.link(str, { className: "link-at-message" });
+      let tempElement = document.createElement('div')
+      tempElement.innerHTML = newStr;
+      let linksCount = tempElement.querySelectorAll('a').length;
+      if(linksCount) {
+        let lastLink = tempElement.querySelectorAll('a')[linksCount-1];
+        let lastLinkUrl = lastLink.href;
+        request(lastLinkUrl, function (error, response, html) {
+          if (!error && response.statusCode == 200) {
+            const $ = cheerio.load(html);
+            console.log(html);
+          }
+        });
+      }
+      return newStr;
     }
   }
 }
@@ -172,4 +171,7 @@ export default {
   @import '../assets/scss/variables';
   @import '../assets/scss/b-message';
   @import '../assets/scss/adaptive';
+  .toggle-btn {
+    transition: all .3s ease-in-out;
+  }
 </style>

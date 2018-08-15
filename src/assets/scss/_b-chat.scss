@@ -36,6 +36,7 @@
   &--task {
     .toggle-btn {
       display: block;
+      transition: all .3s ease-in-out;
     }
     &.closed {
       .toggle-btn {
@@ -51,6 +52,9 @@
         }
       }
     }
+  }
+  &--single {
+    z-index: 500;
   }
   &__title {
     font-family: $medium;

@@ -1,10 +1,9 @@
 <template>
-  <div id="chat-app" v-if="(Object.keys(users).length > 0) && (Object.keys(messages).length > 0)">
+  <div id="chat-app" @scroll="loadMore($event)" v-if="(Object.keys(users).length > 0) && (messages.length > 0)">
     <SendFormComponent :general="true"></SendFormComponent>
     <transition-group name="flip-list" tag="div">
-      <MessageComponent v-for="message in messageGlobalArr" :key="message.id" :message="message" :users="users" :index="message.id"></MessageComponent>
+      <MessageComponent v-for="message in messages" :key="message.id" :message="message" :users="users"></MessageComponent>
     </transition-group>
-    <!-- <button @click.prevent="loadMore(lastKey)">Load more</button> -->
   </div>
 </template>
 
@@ -21,8 +20,8 @@ export default {
   },
   data () {
     return {
-      lastKey: '',
-      messages: {},
+      limitTo: 5,
+      messages: [],
       users: {},
     }
   },
@@ -30,7 +29,6 @@ export default {
     messageGlobalArr: function() {
       let arr = [];
       for(let key in this.messages) {
-        console.log();
         let obj = this.messages[key];
         obj.id = key;
         arr.push(obj);
@@ -38,24 +36,39 @@ export default {
       return arr.reverse();
     }
   },
-  beforeCreate () {
+  created () {
     let _this = this;
     db.ref('users').once('value').then(snapshot => {
       this.users = snapshot.val();
     });
-    db.ref(currentChatRoom).child('messages').on('value', function(snapshot) {
-      _this.messages = snapshot.val();
-      _this.lastKey = Object.keys(snapshot.val())[Object.keys(snapshot.val()).length - 1];
+    db.ref(currentChatRoom+'/messages').orderByChild('updateAt').limitToLast(this.limitTo).on('value', function(snapshot) {
+      _this.messages = [];
+      snapshot.forEach(function(child) {
+        let obj = child.val();
+        obj['id'] = child.key;
+        _this.messages.unshift(obj);
+      });
     });
   },
   methods: {
-    // loadMore(from) {
-    //   let _this = this;
-    //   db.ref(currentChatRoom).child('messages').startAt(from).on('value', function(snapshot) {
-    //     _this.messages = snapshot.val();
-    //     _this.lastKey = Object.keys(snapshot.val())[0];
-    //   });
-    // } 
+    loadMore(e) {
+      let area = e.target;
+      let areaInnerHeight = parseFloat(area.scrollHeight) - 50;
+      let areaScrollTop = area.scrollTop + document.body.clientHeight;
+      if(areaScrollTop > areaInnerHeight) {
+        let _this = this;
+        db.ref(currentChatRoom+'/messages').off('value');
+        this.limitTo += 5;
+        db.ref(currentChatRoom+'/messages').orderByChild('updateAt').limitToLast(this.limitTo).on('value', function(snapshot) {
+          _this.messages = [];
+          snapshot.forEach(function(child) {
+            let obj = child.val();
+            obj['id'] = child.key;
+            _this.messages.unshift(obj);
+          });
+        });
+      }
+    } 
   }
 }
 </script>
@@ -66,4 +79,7 @@ export default {
   @import './assets/scss/general';
   @import './assets/scss/chat-app';
   @import './assets/scss/adaptive';
+  .toggle-btn {
+    transition: all .3s ease-in-out;
+  }
 </style>
