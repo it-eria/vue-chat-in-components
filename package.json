@@ -18,6 +18,7 @@
     "@vue/eslint-config-standard": "^3.0.0-rc.10",
     "autolinker": "^1.7.1",
     "cheerio": "^1.0.0-rc.2",
+    "cors": "^2.8.4",
     "firebase": "^5.3.0",
     "mimetype": "0.0.8",
     "node-sass": "^4.9.0",

@@ -1,5 +1,5 @@
 <template>
-  <div :class="[!collapseMessageGroup.collapse ? 'b-chat b-chat--single b-chat--task' : 'b-chat b-chat--single b-chat--task closed']">
+  <div @scroll="loadMore($event)" :class="[!collapseMessageGroup.collapse ? 'b-chat b-chat--single b-chat--task' : 'b-chat b-chat--single b-chat--task closed']">
     <SendFormComponent v-if="message.msgGr" :general="false" :collapse="collapseMessageGroup" :groupName="message.groupName" :sendTo="message.id"></SendFormComponent>
     <!-- Grouped messages template -->
     <div v-if="message.msgGr">
@@ -69,7 +69,7 @@ import SendFormComponent from './SendFormComponent'
 import AutoLinker from 'autolinker'
 import cheerio from 'cheerio'
 import request from 'request'
-import { db, st } from '../firebase'
+import { db, st, currentChatRoom } from '../firebase'
 
 
 
@@ -86,24 +86,59 @@ export default {
       collapseMessageGroup: {
         collapse: true
       },
-      meta: null
+      countOfMessages: 0,
+      limitTo: 5,
+      submessages: [],
+      currentId: this.message.id
     }
   },
   computed: {
     messageArr: function() {
       let arr = [];
-      for(let key in this.message.msgGr) {
-        let obj = this.message.msgGr[key];
+      for(let key in this.submessages) {
+        let obj = this.submessages[key];
         obj.id = key;
         arr.push(obj);
       }
-      return arr.reverse();
+      return arr;
     }
   },
   created () {
-    
+    let _this = this;
+    if(this.message.msgGr) {
+      console.log(this.message.groupName + ' - ' + this.currentId);
+      db.ref(currentChatRoom).child('messages/'+this.currentId).child('msgGr').once('value', function(snap) {
+        _this.countOfMessages = Object.keys(snap.val()).length;
+      });
+      db.ref(currentChatRoom).child('messages/'+this.currentId).child('msgGr').orderByChild('updateAt').limitToLast(this.limitTo).on('value', function(snapshot) {
+        _this.submessages = [];
+        snapshot.forEach(function(child) {
+          let obj = child.val();
+          obj['id'] = child.key;
+          _this.submessages.unshift(obj);
+        });
+      });
+    }
   },
   methods: {
+    loadMore(e) {
+      let area = e.target;
+      let areaInnerHeight = parseFloat(area.scrollHeight);
+      let areaScrollTop = area.scrollTop + area.clientHeight;
+      if(areaScrollTop == areaInnerHeight && this.limitTo <= this.countOfMessages) {
+        let _this = this;
+        db.ref(currentChatRoom).child('messages/'+this.currentId).child('msgGr').off('value');
+        this.limitTo += 5;
+        db.ref(currentChatRoom).child('messages/'+this.currentId).child('msgGr').orderByChild('updateAt').limitToLast(this.limitTo).on('value', function(snapshot) {
+          _this.submessages = [];
+          snapshot.forEach(function(child) {
+            let obj = child.val();
+            obj['id'] = child.key;
+            _this.submessages.unshift(obj);
+          });
+        });
+      }
+    },
     getDate (sec) {
       let temp_date = new Date(sec);
       let year = temp_date.getFullYear();
@@ -155,8 +190,19 @@ export default {
       if(linksCount) {
         let lastLink = tempElement.querySelectorAll('a')[linksCount-1];
         let lastLinkUrl = lastLink.href;
-        let loop = true;
-        request(lastLinkUrl, function (error, response, html) {
+        let prefix = 'https://';
+        if(/https:\/\//g.test(lastLinkUrl) || /http:\/\//g.test(lastLinkUrl)) {
+          prefix = '';
+        }
+        let options = {
+          url: prefix + lastLinkUrl,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET,PUT,POST,DELETE,OPTIONS",
+            "Access-Control-Allow-Headers": "Content-type,Accept,X-Access-Token,X-Key"
+          }
+        }
+        request.get(options, function (error, response, html) {
           if (!error && response.statusCode == 200) {
             const $ = cheerio.load(html);
             let meta = {
@@ -166,7 +212,7 @@ export default {
               ogImageAlt: $('meta[property="og:image:alt"]').attr("content"),
               ogDescription: $('meta[property="og:description"]').attr("content")
             }
-            if(document.getElementById(id).querySelectorAll('.og-meta').length == 0) {
+            if(document.getElementById(id).querySelectorAll('.og-meta').length == 0 && meta.ogTitle) {
               tempElement.innerHTML = `
                 <a href="${meta.ogUrl || ''}" target="_blank" class="og-meta">
                   <div class="og-meta__img">

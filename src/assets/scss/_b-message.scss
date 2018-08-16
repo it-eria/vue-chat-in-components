@@ -180,9 +180,11 @@
     display: inline-block;
     vertical-align: top;
     width: 100px;
-    height: 100px;
+    height: auto;
+    max-height: 100px;
     background-color: rgba($dark, .1);
     border-radius: 5px;
+    overflow: hidden;
     img {
       width: 100%;
       height: auto;

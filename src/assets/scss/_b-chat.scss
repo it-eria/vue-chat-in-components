@@ -33,12 +33,18 @@
       transform: translate(-50%, -50%) rotate(90deg);
     }
   }
+  &--single {
+    height: 70vh;
+  }
   &--task {
+    overflow-x: hidden;
+    overflow-y: auto;
     .toggle-btn {
       display: block;
       transition: all .3s ease-in-out;
     }
     &.closed {
+      height: auto;
       .toggle-btn {
         transform: translate(-50%, -50%) rotate(0);
       }
