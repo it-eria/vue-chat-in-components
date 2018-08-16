@@ -23,6 +23,7 @@ export default {
       limitTo: 5,
       messages: [],
       users: {},
+      countOfMessages: 0
     }
   },
   computed: {
@@ -38,6 +39,9 @@ export default {
   },
   created () {
     let _this = this;
+    db.ref(currentChatRoom).child('messages').once('value', function(snap) {
+      _this.countOfMessages = Object.keys(snap.val()).length;
+    });
     db.ref('users').once('value').then(snapshot => {
       this.users = snapshot.val();
     });
@@ -53,9 +57,9 @@ export default {
   methods: {
     loadMore(e) {
       let area = e.target;
-      let areaInnerHeight = parseFloat(area.scrollHeight) - 50;
+      let areaInnerHeight = parseFloat(area.scrollHeight);
       let areaScrollTop = area.scrollTop + document.body.clientHeight;
-      if(areaScrollTop > areaInnerHeight) {
+      if(areaScrollTop == areaInnerHeight && this.limitTo <= this.countOfMessages) {
         let _this = this;
         db.ref(currentChatRoom+'/messages').off('value');
         this.limitTo += 5;

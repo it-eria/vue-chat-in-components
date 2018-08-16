@@ -165,3 +165,47 @@
   color: $blue;
   text-decoration: underline;
 }
+
+.og-meta {
+  display: block;
+  border: 2px solid rgba($dark, .1);
+  border-radius: 6px;
+  padding: 10px;
+  text-decoration: none;
+  margin-top: 15px;
+  font-family: $regular;
+  font-size: 0;
+  color: $dark;
+  &__img {
+    display: inline-block;
+    vertical-align: top;
+    width: 100px;
+    height: 100px;
+    background-color: rgba($dark, .1);
+    border-radius: 5px;
+    img {
+      width: 100%;
+      height: auto;
+      &[src="no-src"] {
+        display: none;
+      }
+    }
+  }
+  &__inf {
+    display: inline-block;
+    vertical-align: top;
+    padding-left: 15px;
+    width: calc(100% - 115px);
+    span {
+      font-size: 14px;
+    }
+    h4 {
+      margin: 5px 0;
+      font-family: $medium;
+      font-size: 18px;
+    }
+    p {
+      font-size: 12px;
+    }
+  }
+}

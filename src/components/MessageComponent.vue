@@ -13,7 +13,7 @@
           <span>{{getTime(grMessage.updateAt)}}</span>
         </div>
         <div class="b-chat__message__message-line">
-          <p v-html="findLinksInMessage(grMessage.msg)"></p>          
+          <p v-html="findLinksInMessage(grMessage.msg)"></p>
         </div>
         <div v-if="grMessage.files" class="b-chat__message__files-line">
           <div class="non-photos">
@@ -42,8 +42,8 @@
           <span>{{getDate(message.updateAt)}}</span>
           <span>{{getTime(message.updateAt)}}</span>
         </div>
-        <div class="b-chat__message__message-line">
-          <p v-html="findLinksInMessage(message.msg)"></p>          
+        <div class="b-chat__message__message-line" :id="'msg-' + message.updateAt">
+          <p v-html="findLinksInMessage(message.msg, 'msg-' + message.updateAt)"></p>
         </div>
         <div v-if="message.files" class="b-chat__message__files-line">
           <div class="non-photos">
@@ -85,7 +85,8 @@ export default {
     return {
       collapseMessageGroup: {
         collapse: true
-      }
+      },
+      meta: null
     }
   },
   computed: {
@@ -146,7 +147,7 @@ export default {
       }
       return require('../assets/img/' + iconName);
     },
-    findLinksInMessage(str) {
+    findLinksInMessage(str, id) {
       let newStr = AutoLinker.link(str, { className: "link-at-message" });
       let tempElement = document.createElement('div')
       tempElement.innerHTML = newStr;
@@ -154,10 +155,31 @@ export default {
       if(linksCount) {
         let lastLink = tempElement.querySelectorAll('a')[linksCount-1];
         let lastLinkUrl = lastLink.href;
+        let loop = true;
         request(lastLinkUrl, function (error, response, html) {
           if (!error && response.statusCode == 200) {
             const $ = cheerio.load(html);
-            console.log(html);
+            let meta = {
+              ogTitle: $('meta[property="og:title"]').attr("content"),
+              ogUrl: $('meta[property="og:url"]').attr("content"),
+              ogImage: $('meta[property="og:image"]').attr("content"),
+              ogImageAlt: $('meta[property="og:image:alt"]').attr("content"),
+              ogDescription: $('meta[property="og:description"]').attr("content")
+            }
+            if(document.getElementById(id).querySelectorAll('.og-meta').length == 0) {
+              tempElement.innerHTML = `
+                <a href="${meta.ogUrl || ''}" target="_blank" class="og-meta">
+                  <div class="og-meta__img">
+                      <img src="${meta.ogImage || 'no-src'}" alt="${meta.ogImageAlt}">
+                  </div>
+                  <div class="og-meta__inf">
+                    <span>${meta.ogUrl || lastLinkUrl}</span>
+                    <h4>${meta.ogTitle || ''}</h4>
+                    <p>${meta.ogDescription || ''}</p>
+                  </div>
+                </a>`;
+              document.getElementById(id).appendChild(tempElement);
+            }
           }
         });
       }
