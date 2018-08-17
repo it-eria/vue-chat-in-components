@@ -1,5 +1,5 @@
 <template>
-  <div @scroll="loadMore($event)" :class="[!collapseMessageGroup.collapse ? 'b-chat b-chat--single b-chat--task' : 'b-chat b-chat--single b-chat--task closed']">
+  <div :class="[!collapseMessageGroup.collapse ? 'b-chat b-chat--single b-chat--task' : 'b-chat b-chat--single b-chat--task closed']">
     <SendFormComponent v-if="message.msgGr" :general="false" :collapse="collapseMessageGroup" :groupName="message.groupName" :sendTo="message.id"></SendFormComponent>
     <!-- Grouped messages template -->
     <div v-if="message.msgGr">
@@ -86,10 +86,7 @@ export default {
       collapseMessageGroup: {
         collapse: true
       },
-      countOfMessages: 0,
-      limitTo: 5,
-      submessages: [],
-      currentId: this.message.id
+      submessages: []
     }
   },
   computed: {
@@ -106,13 +103,9 @@ export default {
   created () {
     let _this = this;
     if(this.message.msgGr) {
-      console.log(this.message.groupName + ' - ' + this.currentId);
-      db.ref(currentChatRoom).child('messages/'+this.currentId).child('msgGr').once('value', function(snap) {
-        _this.countOfMessages = Object.keys(snap.val()).length;
-      });
-      db.ref(currentChatRoom).child('messages/'+this.currentId).child('msgGr').orderByChild('updateAt').limitToLast(this.limitTo).on('value', function(snapshot) {
+      db.ref(currentChatRoom).child('messages/'+this.message.id).child('msgGr').orderByChild('updateAt').on('value', function(snap) {
         _this.submessages = [];
-        snapshot.forEach(function(child) {
+        snap.forEach(function(child) {
           let obj = child.val();
           obj['id'] = child.key;
           _this.submessages.unshift(obj);
@@ -121,24 +114,6 @@ export default {
     }
   },
   methods: {
-    loadMore(e) {
-      let area = e.target;
-      let areaInnerHeight = parseFloat(area.scrollHeight);
-      let areaScrollTop = area.scrollTop + area.clientHeight;
-      if(areaScrollTop == areaInnerHeight && this.limitTo <= this.countOfMessages) {
-        let _this = this;
-        db.ref(currentChatRoom).child('messages/'+this.currentId).child('msgGr').off('value');
-        this.limitTo += 5;
-        db.ref(currentChatRoom).child('messages/'+this.currentId).child('msgGr').orderByChild('updateAt').limitToLast(this.limitTo).on('value', function(snapshot) {
-          _this.submessages = [];
-          snapshot.forEach(function(child) {
-            let obj = child.val();
-            obj['id'] = child.key;
-            _this.submessages.unshift(obj);
-          });
-        });
-      }
-    },
     getDate (sec) {
       let temp_date = new Date(sec);
       let year = temp_date.getFullYear();
